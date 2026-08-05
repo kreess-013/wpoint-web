@@ -81,7 +81,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 20px;
+            /* увеличенный верхний отступ – визуально 2‑3 строки пространства */
+            padding: 28px 20px 12px;
             font-weight: 600; font-size: 1.3rem; letter-spacing: 1px;
             background: transparent; flex-shrink: 0; color: var(--text);
             text-transform: uppercase;
@@ -202,10 +203,6 @@
             color: #fff;
             transform: translateY(-2px);
         }
-        /* Убираем точку-индикатор и свечение фона */
-        .nav-item.active::after {
-            display: none;
-        }
         .nav-icon {
             font-size: 1.5rem;
             transition: transform 0.2s;
@@ -213,7 +210,6 @@
         .nav-item.active .nav-icon {
             transform: scale(1.1);
         }
-        /* ---- конец панели ---- */
 
         .avatar {
             width:80px; height:80px; border-radius:50%;
