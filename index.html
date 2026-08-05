@@ -127,7 +127,6 @@
             flex: 1;
             overflow-y: auto;
             padding: 0 16px 12px;
-            /* исправленный отступ: header (48px + 56px) + небольшой зазор */
             padding-top: 120px;
             padding-bottom: calc(var(--nav-height) + 20px + var(--safe-bottom));
             scrollbar-width: none;
@@ -206,7 +205,45 @@
             border-bottom: 1px solid rgba(255,255,255,0.06); font-size:0.9rem;
         }
 
-        /* ---- Daily Streak ---- */
+        /* терминал клейма */
+        .claim-terminal {
+            min-height: 220px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+            color: #d0d0d0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 40px rgba(255,255,255,0.03);
+        }
+
+        .terminal-line {
+            opacity: 0;
+            animation: terminalFade 0.4s forwards;
+            margin-bottom: 10px;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .terminal-success {
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        @keyframes terminalFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Daily Streak */
         .streak-grid {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -250,7 +287,7 @@
             .streak-reward { font-size: 11px; }
         }
 
-        /* ---- Wallet actions ---- */
+        /* Wallet */
         .wallet-card {
             background: linear-gradient(135deg, #0a0a0c, #000000);
             border: 1px solid rgba(255,255,255,0.3);
@@ -384,8 +421,11 @@
                     <button class="primary" id="claimBtn">💧 Claim</button>
                     <div style="margin-top:12px; font-size:0.85rem; color:var(--text-secondary)" id="timerMsg"></div>
                 </div>
-                <div style="text-align:center; margin:20px 0;" id="faucetCharacter">
-                    <div style="font-size:120px; cursor:pointer; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));" onclick="spawnConfetti(event)">🦴</div>
+                <!-- Терминал вместо кости -->
+                <div id="faucetCharacter" class="claim-terminal">
+                    <div id="terminalText">
+                        <div class="terminal-line terminal-success">READY</div>
+                    </div>
                 </div>
                 <div style="text-align:center; color:var(--text-secondary); font-size:13px;" id="supportText">Support the project by interacting with ads ❤️</div>
             </div>
@@ -584,14 +624,57 @@
                 }
             }
 
+            // ---- анимация терминала ----
+            function runClaimAnimation(amount) {
+                const terminal = document.getElementById("terminalText");
+                terminal.innerHTML = "";
+
+                const lines = [
+                    "> START CLAIM PROCESS",
+                    "> CONNECTING POWER CORE...",
+                    "> VERIFYING USER NODE...",
+                    "> CALCULATING REWARD...",
+                    "> GENERATING " + amount.toFixed(5) + " USDT",
+                    "> SENDING REWARD...",
+                    "> ACTIVITY UPDATED",
+                    "> CLAIM COMPLETE ✓"
+                ];
+
+                let index = 0;
+                function nextLine() {
+                    if (index >= lines.length) {
+                        setTimeout(() => {
+                            terminal.innerHTML = `<div class="terminal-line terminal-success">+${amount.toFixed(5)} USDT RECEIVED</div>`;
+                        }, 700);
+                        return;
+                    }
+                    const div = document.createElement("div");
+                    div.className = "terminal-line";
+                    div.textContent = lines[index];
+                    terminal.appendChild(div);
+                    index++;
+                    setTimeout(nextLine, 600);
+                }
+                nextLine();
+            }
+
+            // ---- новая функция claim ----
             window.claim = function() {
                 if (Date.now() - lastClaim < CLAIM_COOLDOWN) return;
-                balance += CLAIM_AMOUNT;
-                lastClaim = Date.now();
-                localStorage.setItem('faucet_lastClaim', lastClaim);
-                updateBalanceUI();
-                updateClaimButton();
-                addActivity('Claim', `+${CLAIM_AMOUNT.toFixed(5)} USDT`);
+
+                claimBtn.disabled = true;
+                timerMsg.textContent = 'Processing...';
+
+                runClaimAnimation(CLAIM_AMOUNT);
+
+                setTimeout(() => {
+                    balance += CLAIM_AMOUNT;
+                    lastClaim = Date.now();
+                    localStorage.setItem('faucet_lastClaim', lastClaim);
+                    updateBalanceUI();
+                    addActivity('Claim', `+${CLAIM_AMOUNT.toFixed(5)} USDT`);
+                    updateClaimButton();
+                }, 4500);
             };
 
             function addActivity(type, amount) {
