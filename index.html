@@ -14,12 +14,12 @@
             --text: #f0f0f0;
             --text-secondary: #aaaaaa;
             --radius: 24px;
-            --nav-height: 70px;
+            --nav-height: 80px;
             --font: 'SF Mono', 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
- 
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background: radial-gradient(ellipse at 50% 0%, #0a0a10 0%, #040408 55%, #010102 100%);
@@ -81,7 +81,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            /* увеличенный верхний отступ – визуально 2‑3 строки пространства */
             padding: 28px 20px 12px;
             font-weight: 600; font-size: 1.3rem; letter-spacing: 1px;
             background: transparent; flex-shrink: 0; color: var(--text);
@@ -164,24 +163,31 @@
             border-bottom: 1px solid rgba(255,255,255,0.06); font-size:0.9rem;
         }
 
-        /* ---- ПАНЕЛЬ НАВИГАЦИИ iOS DOCK (ОБНОВЛЁННАЯ) ---- */
+        /* ---- ПАНЕЛЬ НАВИГАЦИИ (возвращаем скругление и обводку, убираем чёрный фон) ---- */
         nav {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            height: 70px;
-            background: rgba(20,20,25,0.65);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            height: var(--nav-height);
+
+            background: rgba(255,255,255,0.04);
+
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+
             border-radius: 32px;
+
             margin: 0 12px 10px 12px;
             padding: 0 8px;
             padding-bottom: var(--safe-bottom);
-            flex-shrink: 0;
-            z-index: 10;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.12) inset;
-            border: none;
-            transform: translateY(-4px);
+
+            flex-shrink:0;
+            z-index:10;
+
+            border:1px solid rgba(255,255,255,0.12);
+
+            box-shadow:
+                0 0 20px rgba(255,255,255,0.05);
         }
         .nav-item {
             display: flex;
@@ -190,14 +196,13 @@
             justify-content: center;
             gap: 4px;
             font-size: 0.65rem;
-            color: var(--text-secondary);
+            color: rgba(255,255,255,0.7);
             flex: 1;
             padding: 6px 0;
             transition: all 0.2s ease;
             cursor: pointer;
             border-radius: 20px;
             letter-spacing: 0.3px;
-            position: relative;
         }
         .nav-item.active {
             color: #fff;
