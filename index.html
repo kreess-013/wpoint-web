@@ -19,7 +19,7 @@
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
-  
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background: radial-gradient(ellipse at 50% 0%, #0a0a10 0%, #040408 55%, #010102 100%);
@@ -163,7 +163,7 @@
             border-bottom: 1px solid rgba(255,255,255,0.06); font-size:0.9rem;
         }
 
-        /* ---- НОВАЯ ПАНЕЛЬ НАВИГАЦИИ В СТИЛЕ iOS DOCK ---- */
+        /* ---- ПАНЕЛЬ НАВИГАЦИИ iOS DOCK (ОБНОВЛЁННАЯ) ---- */
         nav {
             display: flex;
             justify-content: space-around;
@@ -200,20 +200,11 @@
         }
         .nav-item.active {
             color: #fff;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             transform: translateY(-2px);
         }
+        /* Убираем точку-индикатор и свечение фона */
         .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            width: 4px;
-            height: 4px;
-            background: #fff;
-            border-radius: 50%;
-            opacity: 0.8;
+            display: none;
         }
         .nav-icon {
             font-size: 1.5rem;
