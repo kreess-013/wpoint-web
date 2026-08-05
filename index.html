@@ -52,16 +52,14 @@
         }
 
         .app {
-            position: relative;
-            z-index: 1;
+            position: relative; z-index:1;
             width: 100%;
             height: 100vh;
             height: 100dvh;
             background: rgba(4,4,8,0.35);
             backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
             border-radius: 0;
             margin: 0;
@@ -421,7 +419,6 @@
                     <button class="primary" id="claimBtn">💧 Claim</button>
                     <div style="margin-top:12px; font-size:0.85rem; color:var(--text-secondary)" id="timerMsg"></div>
                 </div>
-                <!-- Терминал вместо кости -->
                 <div id="faucetCharacter" class="claim-terminal">
                     <div id="terminalText">
                         <div class="terminal-line terminal-success">READY</div>
@@ -483,19 +480,18 @@
                         <div class="task-item"><span>Like the post</span><button onclick="completeTask(2)">Claim</button></div>
                     </div>
                 </div>
-                <!-- Новый блок "Пригласить друга" -->
-                <div class="card" id="referralBlock">
-                    <div style="font-size:20px; font-weight:700; color:#fff; margin-bottom:12px;">👥 Пригласить друга</div>
-                    <div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">Пригласите друга и получайте 10% от его заработка</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <span style="color:var(--text-secondary);">Реферальная ссылка</span>
-                        <span id="refLink" style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:8px; font-size:13px;">https://t.me/WGrammBot?start=ref123</span>
+                <!-- Пригласить друга -->
+                <div class="card">
+                    <div class="label" id="referralTitle">👥 Invite a Friend</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem;">
+                        <span style="color:var(--text-secondary);" id="referralLinkLabel">Referral link</span>
+                        <span style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:8px;">https://t.me/WGrammBot?start=ref123</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <span style="color:var(--text-secondary);">Заработано с рефералов</span>
-                        <span id="refBalance" style="font-weight:700;">0.00 USDT</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem;">
+                        <span style="color:var(--text-secondary);" id="referralEarnedLabel">Earned from referrals</span>
+                        <span style="font-weight:700;" id="referralEarnedValue">0.00 USDT</span>
                     </div>
-                    <button id="claimRefBtn" class="primary" onclick="claimRefReward()">Собрать награду</button>
+                    <button onclick="claimRefReward()" id="claimRefRewardBtn">Claim Reward</button>
                 </div>
             </div>
         </section>
@@ -550,7 +546,9 @@
                     withdraw: 'Withdraw', send: 'Send', history: 'History', historyTitle: '📜 Withdraw history',
                     noWithdraws: 'No withdraws', dailyQuestsTitle: 'Daily Quests', tasksListTitle: 'Tasks',
                     activityTitle: 'Recent Activity', taskDone: 'Task completed! +', enterAmount: 'Enter amount',
-                    withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount'
+                    withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount',
+                    referralTitle: '👥 Invite a Friend', referralLinkLabel: 'Referral link',
+                    referralEarnedLabel: 'Earned from referrals', claimRefRewardBtn: 'Claim Reward'
                 },
                 ru: {
                     profile: 'WGramm', faucet: 'Кран', wallet: 'Кошелёк', tasks: 'Задания', activity: 'Активность',
@@ -561,7 +559,9 @@
                     withdraw: 'Вывести', send: 'Отправить', history: 'История', historyTitle: '📜 История выводов',
                     noWithdraws: 'Нет выводов', dailyQuestsTitle: 'Ежедневные квесты', tasksListTitle: 'Задания',
                     activityTitle: 'Последние действия', taskDone: 'Задание выполнено! +', enterAmount: 'Введите сумму',
-                    withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма'
+                    withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма',
+                    referralTitle: '👥 Пригласить друга', referralLinkLabel: 'Реферальная ссылка',
+                    referralEarnedLabel: 'Заработано с рефералов', claimRefRewardBtn: 'Собрать награду'
                 }
             };
 
@@ -592,6 +592,10 @@
                 document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle');
                 document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
                 document.getElementById('activityTitle').textContent = t('activityTitle');
+                document.getElementById('referralTitle').textContent = t('referralTitle');
+                document.getElementById('referralLinkLabel').textContent = t('referralLinkLabel');
+                document.getElementById('referralEarnedLabel').textContent = t('referralEarnedLabel');
+                document.getElementById('claimRefRewardBtn').textContent = t('claimRefRewardBtn');
             }
 
             window.setLang = function(lang) {
@@ -638,7 +642,6 @@
                 }
             }
 
-            // ---- анимация терминала ----
             function runClaimAnimation(amount) {
                 const terminal = document.getElementById("terminalText");
                 terminal.innerHTML = "";
@@ -672,7 +675,6 @@
                 nextLine();
             }
 
-            // ---- новая функция claim ----
             window.claim = function() {
                 if (Date.now() - lastClaim < CLAIM_COOLDOWN) return;
 
@@ -767,9 +769,8 @@
                 loadDailyStreak();
             };
 
-            // Заглушка для реферальной награды
             window.claimRefReward = function() {
-                alert('Реферальная награда будет переведена на основной баланс (заглушка)');
+                alert(t('claimRefRewardBtn') + ' (заглушка)');
             };
 
             function scrollToSection(id) {
