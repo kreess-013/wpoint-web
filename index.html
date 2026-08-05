@@ -483,6 +483,20 @@
                         <div class="task-item"><span>Like the post</span><button onclick="completeTask(2)">Claim</button></div>
                     </div>
                 </div>
+                <!-- Новый блок "Пригласить друга" -->
+                <div class="card" id="referralBlock">
+                    <div style="font-size:20px; font-weight:700; color:#fff; margin-bottom:12px;">👥 Пригласить друга</div>
+                    <div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">Пригласите друга и получайте 10% от его заработка</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="color:var(--text-secondary);">Реферальная ссылка</span>
+                        <span id="refLink" style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:8px; font-size:13px;">https://t.me/WGrammBot?start=ref123</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="color:var(--text-secondary);">Заработано с рефералов</span>
+                        <span id="refBalance" style="font-weight:700;">0.00 USDT</span>
+                    </div>
+                    <button id="claimRefBtn" class="primary" onclick="claimRefReward()">Собрать награду</button>
+                </div>
             </div>
         </section>
 
@@ -751,6 +765,11 @@
                 addActivity('Daily Streak', `+${rewardUsdt.toFixed(2)} USDT`);
                 localStorage.setItem('daily_streak_claimed', 'true');
                 loadDailyStreak();
+            };
+
+            // Заглушка для реферальной награды
+            window.claimRefReward = function() {
+                alert('Реферальная награда будет переведена на основной баланс (заглушка)');
             };
 
             function scrollToSection(id) {
