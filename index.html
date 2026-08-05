@@ -52,26 +52,29 @@
         }
 
         .app {
-            position: relative; z-index:1;
+            position: relative;
+            z-index: 1;
             width: 100%;
             height: 100vh;
             height: 100dvh;
             background: rgba(4,4,8,0.35);
             backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
             border-radius: 0;
             margin: 0;
             max-width: 100%;
             max-height: 100vh;
             max-height: 100dvh;
-            padding-top: var(--safe-top);
+            /* убираем двойной safe-area отступ */
+            padding-top: 0;
         }
 
         header {
             position: absolute;
-            top: calc(48px + var(--safe-top));
+            top: 16px;                       /* компактный отступ сверху */
             left: 12px;
             right: 12px;
             height: var(--header-height);
@@ -122,11 +125,14 @@
         .lang-btn.active { background:#d0d0d0; color:#0a0a0a; border-color:#fff; }
 
         main {
-            flex:1; overflow-y: auto;
+            flex: 1;
+            overflow-y: auto;
             padding: 0 16px 12px;
-            padding-top: calc(var(--header-height) + 64px + var(--safe-top));
+            /* отступ ровно под header + небольшой зазор */
+            padding-top: 90px;
             padding-bottom: calc(var(--nav-height) + 20px + var(--safe-bottom));
-            scrollbar-width: none; scroll-behavior: smooth;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
         main::-webkit-scrollbar { display: none; }
@@ -201,7 +207,7 @@
             border-bottom: 1px solid rgba(255,255,255,0.06); font-size:0.9rem;
         }
 
-        /* ---- Daily Streak fixes ---- */
+        /* ---- Daily Streak ---- */
         .streak-grid {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -249,26 +255,22 @@
             border-color: rgba(255,255,255,0.05);
         }
 
-        /* адаптив для маленьких экранов */
         @media (max-width: 420px) {
             .card {
                 padding: 14px;
             }
-
             .streak-grid {
                 gap: 4px;
             }
-
             .streak-day {
                 border-radius: 10px;
             }
-
             .streak-reward {
                 font-size: 11px;
             }
         }
 
-        /* ---- Wallet actions fixes ---- */
+        /* ---- Wallet actions ---- */
         .wallet-card {
             background: linear-gradient(135deg, #0a0a0c, #000000);
             border: 1px solid rgba(255,255,255,0.3);
@@ -842,6 +844,9 @@
 
             function initApp() {
                 try {
+                    // сбрасываем скролл в начало
+                    main.scrollTop = 0;
+
                     setLang(currentLang);
                     updateBalanceUI();
                     loadActivities();
