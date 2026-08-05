@@ -1,1 +1,756 @@
+<!DOCTYPE html>
+<html lang="en" style="scroll-behavior: smooth;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>WGramm – Dark Contrast UI</title>
+    <style>
+        :root {
+            --bg: #020205;
+            --glass: rgba(10,10,14,0.85);
+            --glass-border: rgba(255,255,255,0.25);
+            --glass-shadow: 0 4px 24px rgba(0,0,0,0.7);
+            --accent: #b0b0b0;
+            --text: #f0f0f0;
+            --text-secondary: #aaaaaa;
+            --radius: 24px;
+            --nav-height: 80px;
+            --font: 'SF Mono', 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
+        }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: radial-gradient(ellipse at 50% 0%, #0a0a10 0%, #040408 55%, #010102 100%);
+            font-family: var(--font);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            user-select: none;
+            letter-spacing: 0.3px;
+        }
+
+        #splash {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: #010102; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 99999;
+        }
+        #splash .logo { font-size: 80px; animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
+
+        .background {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+        .blob {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.1;
+            animation: float 18s infinite ease-in-out;
+        }
+        .blob1 { width:350px; height:350px; background:#5a4fcf; top:-150px; left:-100px; }
+        .blob2 { width:280px; height:280px; background:#009a7a; bottom:-100px; right:-80px; animation-delay:-8s; }
+        .blob3 { width:220px; height:220px; background:#c73a6a; top:40%; left:60%; animation-delay:-14s; }
+        @keyframes float {
+            0%,100% { transform:translate(0,0) scale(1); }
+            25% { transform:translate(40px,-30px) scale(1.08); }
+            50% { transform:translate(-20px,50px) scale(0.92); }
+            75% { transform:translate(-50px,-20px) scale(1.05); }
+        }
+
+        .app {
+            position: relative; z-index:1; width:100%; max-width:420px;
+            height:100vh; max-height:850px;
+            background: rgba(4,4,8,0.55); backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: 36px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(255,255,255,0.15);
+            display: flex; flex-direction: column; overflow: hidden; margin:20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 20px 12px;
+            font-weight: 600; font-size: 1.3rem; letter-spacing: 1px;
+            background: transparent; flex-shrink: 0; color: var(--text);
+            text-transform: uppercase;
+        }
+        main {
+            flex:1; overflow-y: auto; padding: 0 16px 12px;
+            scrollbar-width: none; scroll-behavior: smooth;
+        }
+        main::-webkit-scrollbar { display: none; }
+        section { padding-top:6px; padding-bottom:6px; }
+
+        .section-wrapper {
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 18px;
+            background: rgba(10,10,14,0.5);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.05) inset;
+        }
+
+        .section-title {
+            font-size: 1.6rem; font-weight: 900; margin-bottom: 16px;
+            color: #fff; letter-spacing: 0.5px; text-align: center;
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: var(--glass); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border); border-radius: var(--radius);
+            padding: 20px; margin-bottom: 18px;
+            box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.05) inset;
+            transition: transform 0.2s;
+        }
+        .card:active { transform: scale(0.98); }
+
+        .balance-big {
+            font-size: 3.2rem; font-weight: 900; letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff, #c0b0ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .label {
+            font-size: 0.8rem; color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+            font-weight: 500;
+        }
+        button {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.35);
+            color: #eee; padding: 14px 24px; border-radius: 18px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s; width: 100%; margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+        button:active { background: rgba(255,255,255,0.2); transform: scale(0.97); }
+        button.primary {
+            background: #c0c0c0; border-color: #ffffff;
+            color: #0a0a0a; box-shadow: 0 4px 20px rgba(180,180,180,0.4);
+            font-weight: 700;
+        }
+        button:disabled { opacity:0.4; background: rgba(30,30,30,0.8); color:#666; border-color: rgba(255,255,255,0.1); }
+
+        .task-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .task-item:last-child { border-bottom: none; }
+        .badge {
+            font-size:0.75rem; padding:4px 10px; border-radius:20px;
+            background: rgba(200,200,255,0.15); color:#c0b0ff;
+            font-weight: 600;
+        }
+        .activity-row {
+            display: flex; justify-content: space-between; padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06); font-size:0.9rem;
+        }
+
+        nav {
+            display: flex; justify-content: space-around; align-items: center;
+            height: var(--nav-height);
+            background: rgba(6,6,12,0.65); backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border-top: 1px solid rgba(255,255,255,0.25);
+            border-radius: 28px;
+            margin: 0 10px 16px 10px;
+            padding-bottom: env(safe-area-inset-bottom,0);
+            flex-shrink: 0; z-index:10;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1) inset;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap:4px; font-size:0.7rem;
+            color: var(--text-secondary); flex:1; padding:8px 0;
+            transition: color 0.2s; cursor:pointer; border-radius:20px;
+            letter-spacing: 0.5px;
+        }
+        .nav-item.active { color: #fff; background: rgba(255,255,255,0.12); }
+        .nav-icon { font-size: 1.6rem; }
+
+        .avatar {
+            width:80px; height:80px; border-radius:50%;
+            background: linear-gradient(135deg, #7b6bff, #e04e7a);
+            display:flex; align-items:center; justify-content:center;
+            font-size:2.5rem; margin:0 auto 12px; border:2px solid rgba(255,255,255,0.25);
+        }
+        .stats-grid {
+            display:grid; grid-template-columns:1fr 1fr; gap:12px;
+        }
+        .stat-item { text-align:center; }
+        .stat-label { font-size:13px; opacity:0.7; margin-bottom:4px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; }
+        .stat-value { font-size:24px; font-weight:900; color: var(--text); }
+
+        .streak-grid {
+            display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:12px;
+        }
+        .streak-day {
+            background: rgba(20,20,28,0.7); border:1px solid rgba(255,255,255,0.15);
+            border-radius:14px; padding:10px 4px; text-align:center;
+            transition:0.2s; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+        }
+        .streak-day.active {
+            background: #d0d0d0; border-color:#fff; color:#0a0a0a;
+            transform: scale(1.06); box-shadow: 0 4px 20px rgba(200,200,200,0.5);
+            font-weight: 700;
+        }
+        .streak-day.claimed { opacity:0.3; background: rgba(20,20,28,0.4); border-color: rgba(255,255,255,0.05); }
+        .streak-num { font-size:12px; opacity:0.6; }
+        .streak-reward { margin-top:6px; font-size:15px; font-weight:700; }
+
+        .wallet-card {
+            background: linear-gradient(135deg, #0a0a0c, #000000);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px; padding: 20px; margin-bottom: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.9);
+            position: relative; overflow: hidden;
+        }
+        .wallet-card::before {
+            content: ''; position: absolute; top:-30%; right:-20%;
+            width:200px; height:200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .wallet-balance { font-size:38px; font-weight:900; color:#fff; }
+
+        .wallet-actions {
+            display: flex; justify-content: space-around; margin: 20px 0;
+        }
+        .wallet-action-btn {
+            display: flex; flex-direction: column; align-items: center;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .wallet-action-btn:active { transform: scale(0.93); }
+        .wallet-action-icon {
+            width:56px; height:56px; border-radius:50%;
+            background: #d0d0d0; border:2px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size:22px; box-shadow:0 4px 16px rgba(0,0,0,0.6);
+            color:#0a0a0a;
+        }
+        .wallet-action-btn span:last-child { margin-top:8px; font-size:13px; font-weight:600; color:#ccc; }
+
+        .lang-btns { display: flex; gap: 8px; }
+        .lang-btn {
+            background: rgba(30,30,34,0.8); border:1px solid rgba(255,255,255,0.2);
+            color:#aaa; padding:6px 14px; border-radius:12px; font-size:13px;
+            font-weight:700; cursor:pointer; transition:0.2s;
+            letter-spacing: 0.3px;
+        }
+        .lang-btn.active { background:#d0d0d0; color:#0a0a0a; border-color:#fff; }
+
+        input {
+            width: 100%; padding: 15px 16px; border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(15,15,20,0.8); color: #eee;
+            margin-top: 10px; font-size: 15px; outline: none;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            font-family: var(--font);
+        }
+        input::placeholder { color: #666; opacity: 0.8; }
+    </style>
+</head>
+<body>
+<div id="splash">
+    <div class="logo">💎</div>
+    <div style="color:#aaa; font-size:22px; font-weight:600; letter-spacing:4px; margin-top:20px;">WGramm</div>
+</div>
+
+<div class="background">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="blob blob3"></div>
+</div>
+
+<div class="app" id="mainApp" style="display:none;">
+    <header>
+        <span>WGramm</span>
+        <div class="lang-btns">
+            <button class="lang-btn active" id="langRuBtn" onclick="setLang('ru')">RU</button>
+            <button class="lang-btn" id="langEnBtn" onclick="setLang('en')">EN</button>
+        </div>
+    </header>
+    <main>
+        <!-- WGramm (Profile) -->
+        <section id="profile">
+            <div class="section-wrapper">
+                <div class="card" style="text-align:center;">
+                    <div class="avatar" id="profileAvatar">👤</div>
+                    <div style="font-weight:700; font-size:1.2rem; color:#fff;" id="profileName">User</div>
+                    <div style="color:var(--text-secondary); margin:4px 0;">ID: <span id="profileId">—</span></div>
+                </div>
+
+                <div class="card">
+                    <div class="stats-grid">
+                        <div class="stat-item"><div class="stat-label" id="statEarnedLabel">Earned</div><div class="stat-value" id="statEarned">0</div></div>
+                        <div class="stat-item"><div class="stat-label" id="statWithdrawnLabel">Withdrawn</div><div class="stat-value" id="statWithdrawn">0</div></div>
+                        <div class="stat-item"><div class="stat-label" id="statGamesLabel">Games</div><div class="stat-value" id="statGames">0</div></div>
+                        <div class="stat-item"><div class="stat-label" id="statRefsLabel">Refs</div><div class="stat-value" id="statRefs">0</div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="font-size:20px; font-weight:700; color:#fff;" id="dailyStreakTitle">🔥 Daily Streak</div>
+                    <div style="opacity:0.5; margin-top:6px; font-size:14px; color:var(--text-secondary);" id="dailyStreakDesc">Login every day and get rewards</div>
+                    <div class="streak-grid" id="streakGrid"></div>
+                    <button id="dailyBtn" class="primary" onclick="claimDailyStreak()">CLAIM REWARD</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Faucet -->
+        <section id="faucet">
+            <div class="section-wrapper">
+                <div class="section-title" id="faucetTitle">Faucet</div>
+                <div class="card" style="text-align:center;">
+                    <div class="label" id="faucetBalanceLabel">Your Balance</div>
+                    <div class="balance-big" id="balanceDisplay">0.000000</div>
+                    <div style="color:var(--text-secondary)">USDT</div>
+                    <button class="primary" id="claimBtn">💧 Claim</button>
+                    <div style="margin-top:12px; font-size:0.85rem; color:var(--text-secondary)" id="timerMsg"></div>
+                </div>
+                <div style="text-align:center; margin:20px 0;" id="faucetCharacter">
+                    <div style="font-size:120px; cursor:pointer; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));" onclick="spawnConfetti(event)">🦴</div>
+                </div>
+                <div style="text-align:center; color:var(--text-secondary); font-size:13px;" id="supportText">Support the project by interacting with ads ❤️</div>
+            </div>
+        </section>
+
+        <!-- Wallet -->
+        <section id="wallet">
+            <div class="section-wrapper">
+                <div class="section-title" id="walletTitle">Wallet</div>
+                <div class="wallet-card">
+                    <span style="color:#ccc; font-weight:700; font-size:14px; letter-spacing:1px;">USDT</span>
+                    <div class="wallet-balance" id="walletBalance">0.000000</div>
+                </div>
+                <div class="wallet-actions">
+                    <div class="wallet-action-btn" onclick="showWithdrawForm()">
+                        <span class="wallet-action-icon">💸</span><span id="withdrawActionLabel">Withdraw</span>
+                    </div>
+                    <div class="wallet-action-btn" onclick="alert('Send')">
+                        <span class="wallet-action-icon">📤</span><span id="sendActionLabel">Send</span>
+                    </div>
+                    <div class="wallet-action-btn" onclick="showHistory()">
+                        <span class="wallet-action-icon">📜</span><span id="historyActionLabel">History</span>
+                    </div>
+                </div>
+                <div class="card" id="withdrawForm" style="display:none;">
+                    <input id="walletAddressInput" placeholder="TON wallet">
+                    <input id="amountInput" type="number" placeholder="Amount">
+                    <div style="margin:10px 0; font-size:14px; color:var(--text-secondary);">Fee: 0.01 USDT</div>
+                    <button onclick="withdraw()">WITHDRAW</button>
+                    <button onclick="hideWithdrawForm()" style="background:rgba(255,255,255,0.03);">Back</button>
+                </div>
+                <div class="card" id="historyCard" style="display:none;">
+                    <h3 id="historyTitle" style="color:#fff; margin-bottom:12px;">📜 Withdraw history</h3>
+                    <div id="withdrawHistory"></div>
+                    <button onclick="hideHistory()" style="background:rgba(255,255,255,0.03);">Back</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks -->
+        <section id="tasks">
+            <div class="section-wrapper">
+                <div class="section-title" id="tasksTitle">Tasks</div>
+                <div class="card">
+                    <div class="label" id="dailyQuestsTitle">Daily Quests</div>
+                    <div id="dailyQuests">
+                        <div class="task-item"><span>Quest 1</span><span class="badge">+0.01</span></div>
+                        <div class="task-item"><span>Quest 2</span><span class="badge">+0.02</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="label" id="tasksListTitle">Tasks</div>
+                    <div id="tasksList">
+                        <div class="task-item"><span>Subscribe to channel</span><button onclick="completeTask(1)">Open</button></div>
+                        <div class="task-item"><span>Like the post</span><button onclick="completeTask(2)">Claim</button></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Activity -->
+        <section id="activity">
+            <div class="section-wrapper">
+                <div class="section-title" id="activityTitleHeader">Activity</div>
+                <div class="card">
+                    <div class="label" id="activityTitle">Recent Activity</div>
+                    <div id="activityList"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav>
+        <div class="nav-item active" data-target="profile"><span class="nav-icon">👤</span><span>WGramm</span></div>
+        <div class="nav-item" data-target="faucet"><span class="nav-icon">💧</span><span>Faucet</span></div>
+        <div class="nav-item" data-target="wallet"><span class="nav-icon">👛</span><span>Wallet</span></div>
+        <div class="nav-item" data-target="tasks"><span class="nav-icon">✅</span><span>Tasks</span></div>
+        <div class="nav-item" data-target="activity"><span class="nav-icon">📋</span><span>Activity</span></div>
+    </nav>
+</div>
+
+<script>
+(function() {
+    function hideSplash() {
+        var splash = document.getElementById('splash');
+        var app = document.getElementById('mainApp');
+        if (splash) splash.style.display = 'none';
+        if (app) app.style.display = 'flex';
+    }
+
+    try {
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.ready(); tg.expand(); }
+
+        let currentLang = localStorage.getItem('lang') || 'en';
+        const locale = {
+            en: {
+                profile: 'WGramm',
+                faucet: 'Faucet',
+                wallet: 'Wallet',
+                tasks: 'Tasks',
+                activity: 'Activity',
+                statEarned: 'Earned',
+                statWithdrawn: 'Withdrawn',
+                statGames: 'Games',
+                statRefs: 'Refs',
+                dailyStreak: '🔥 Daily Streak',
+                dailyStreakDesc: 'Login every day and get rewards',
+                claimStreak: 'CLAIM REWARD',
+                faucetBalance: 'Your Balance',
+                claim: '💧 Claim',
+                support: 'Support the project by interacting with ads ❤️',
+                walletBalance: 'USDT',
+                withdraw: 'Withdraw',
+                send: 'Send',
+                history: 'History',
+                historyTitle: '📜 Withdraw history',
+                noWithdraws: 'No withdraws',
+                dailyQuestsTitle: 'Daily Quests',
+                tasksListTitle: 'Tasks',
+                activityTitle: 'Recent Activity',
+                taskDone: 'Task completed! +',
+                enterAmount: 'Enter amount',
+                withdrawSuccess: 'Withdrawal successful',
+                invalidAmount: 'Invalid amount'
+            },
+            ru: {
+                profile: 'WGramm',
+                faucet: 'Кран',
+                wallet: 'Кошелёк',
+                tasks: 'Задания',
+                activity: 'Активность',
+                statEarned: 'Заработано',
+                statWithdrawn: 'Выведено',
+                statGames: 'Игр',
+                statRefs: 'Рефералов',
+                dailyStreak: '🔥 Ежедневная серия',
+                dailyStreakDesc: 'Заходите каждый день и получайте бонусы',
+                claimStreak: 'ЗАБРАТЬ НАГРАДУ',
+                faucetBalance: 'Ваш баланс',
+                claim: '💧 Забрать',
+                support: 'Поддержите проект, взаимодействуя с рекламой ❤️',
+                walletBalance: 'USDT',
+                withdraw: 'Вывести',
+                send: 'Отправить',
+                history: 'История',
+                historyTitle: '📜 История выводов',
+                noWithdraws: 'Нет выводов',
+                dailyQuestsTitle: 'Ежедневные квесты',
+                tasksListTitle: 'Задания',
+                activityTitle: 'Последние действия',
+                taskDone: 'Задание выполнено! +',
+                enterAmount: 'Введите сумму',
+                withdrawSuccess: 'Вывод выполнен',
+                invalidAmount: 'Некорректная сумма'
+            }
+        };
+
+        function t(key) { return locale[currentLang]?.[key] || key; }
+        function applyAllLanguage() {
+            // Заголовки секций (profile не имеет заголовка, пропускаем)
+            document.getElementById('faucetTitle').textContent = t('faucet');
+            document.getElementById('walletTitle').textContent = t('wallet');
+            document.getElementById('tasksTitle').textContent = t('tasks');
+            document.getElementById('activityTitleHeader').textContent = t('activity');
+
+            // Навигация
+            document.querySelectorAll('.nav-item span:last-child').forEach((el, i) => {
+                const keys = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
+                el.textContent = t(keys[i]);
+            });
+
+            // Остальные тексты
+            document.getElementById('statEarnedLabel').textContent = t('statEarned');
+            document.getElementById('statWithdrawnLabel').textContent = t('statWithdrawn');
+            document.getElementById('statGamesLabel').textContent = t('statGames');
+            document.getElementById('statRefsLabel').textContent = t('statRefs');
+            document.getElementById('dailyStreakTitle').textContent = t('dailyStreak');
+            document.getElementById('dailyStreakDesc').textContent = t('dailyStreakDesc');
+            document.getElementById('dailyBtn').textContent = t('claimStreak');
+            document.getElementById('faucetBalanceLabel').textContent = t('faucetBalance');
+            document.getElementById('claimBtn').textContent = t('claim');
+            document.getElementById('supportText').textContent = t('support');
+            document.getElementById('withdrawActionLabel').textContent = t('withdraw');
+            document.getElementById('sendActionLabel').textContent = t('send');
+            document.getElementById('historyActionLabel').textContent = t('history');
+            document.getElementById('historyTitle').textContent = t('historyTitle');
+            document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle');
+            document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
+            document.getElementById('activityTitle').textContent = t('activityTitle');
+        }
+
+        window.setLang = function(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
+            document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+            applyAllLanguage();
+        };
+
+        let balance = parseFloat(localStorage.getItem('faucet_balance') || '0');
+        let lastClaim = parseInt(localStorage.getItem('faucet_lastClaim') || '0');
+        const CLAIM_COOLDOWN = 3600000;
+        const CLAIM_AMOUNT = 0.01;
+
+        const balanceDisplays = [
+            document.getElementById('balanceDisplay'),
+            document.getElementById('walletBalance')
+        ];
+        const claimBtn = document.getElementById('claimBtn');
+        const timerMsg = document.getElementById('timerMsg');
+        const activityList = document.getElementById('activityList');
+        const main = document.querySelector('main');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        function updateBalanceUI() {
+            const formatted = balance.toFixed(6);
+            balanceDisplays.forEach(el => { if (el) el.textContent = formatted; });
+            localStorage.setItem('faucet_balance', balance.toString());
+        }
+
+        function updateClaimButton() {
+            const now = Date.now();
+            const diff = now - lastClaim;
+            if (diff < CLAIM_COOLDOWN) {
+                claimBtn.disabled = true;
+                const remaining = Math.ceil((CLAIM_COOLDOWN - diff) / 1000);
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                timerMsg.textContent = `Next claim in ${mins}m ${secs}s`;
+            } else {
+                claimBtn.disabled = false;
+                timerMsg.textContent = 'Ready to claim!';
+            }
+        }
+
+        window.claim = function() {
+            if (Date.now() - lastClaim < CLAIM_COOLDOWN) return;
+            balance += CLAIM_AMOUNT;
+            lastClaim = Date.now();
+            localStorage.setItem('faucet_lastClaim', lastClaim);
+            updateBalanceUI();
+            updateClaimButton();
+            addActivity('Claim', `+${CLAIM_AMOUNT.toFixed(5)} USDT`);
+        };
+
+        function addActivity(type, amount) {
+            const row = document.createElement('div');
+            row.className = 'activity-row';
+            row.innerHTML = `<span>${type}</span><span>${amount}</span>`;
+            activityList.prepend(row);
+            let activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
+            activities.unshift({ type, amount, time: Date.now() });
+            if (activities.length > 20) activities.pop();
+            localStorage.setItem('faucet_activities', JSON.stringify(activities));
+        }
+
+        function loadActivities() {
+            const activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
+            activityList.innerHTML = '';
+            if (activities.length === 0) {
+                activityList.innerHTML = '<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">Empty</div>';
+                return;
+            }
+            activities.forEach(a => {
+                const row = document.createElement('div');
+                row.className = 'activity-row';
+                row.innerHTML = `<span>${a.type}</span><span>${a.amount}</span>`;
+                activityList.appendChild(row);
+            });
+        }
+
+        const streakRewards = [50, 60, 70, 80, 90, 100, 150];
+        function loadDailyStreak() {
+            const today = new Date().toDateString();
+            const lastDate = localStorage.getItem('daily_streak_date');
+            let streakDay = parseInt(localStorage.getItem('daily_streak_day') || '1');
+            if (lastDate !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                if (lastDate === yesterday) {
+                    streakDay = (streakDay % 7) + 1;
+                } else {
+                    streakDay = 1;
+                }
+                localStorage.setItem('daily_streak_day', streakDay);
+                localStorage.setItem('daily_streak_date', today);
+                localStorage.removeItem('daily_streak_claimed');
+            }
+            renderStreakGrid(streakDay);
+            const claimed = localStorage.getItem('daily_streak_claimed') === 'true';
+            const btn = document.getElementById('dailyBtn');
+            if (btn) {
+                btn.disabled = claimed;
+                btn.textContent = claimed ? 'Already claimed today' : t('claimStreak');
+            }
+        }
+
+        function renderStreakGrid(currentDay) {
+            const grid = document.getElementById('streakGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (let i = 1; i <= 7; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'streak-day';
+                if (i === currentDay) dayEl.classList.add('active');
+                else if (i < currentDay) dayEl.classList.add('claimed');
+                dayEl.innerHTML = `<div class="streak-num">${i}</div><div class="streak-reward">${(streakRewards[i-1]*0.01).toFixed(2)}</div>`;
+                grid.appendChild(dayEl);
+            }
+        }
+
+        window.claimDailyStreak = function() {
+            if (localStorage.getItem('daily_streak_claimed') === 'true') return;
+            const day = parseInt(localStorage.getItem('daily_streak_day') || '1');
+            const rewardUsdt = streakRewards[day-1] * 0.01;
+            balance += rewardUsdt;
+            updateBalanceUI();
+            addActivity('Daily Streak', `+${rewardUsdt.toFixed(2)} USDT`);
+            localStorage.setItem('daily_streak_claimed', 'true');
+            loadDailyStreak();
+        };
+
+        function scrollToSection(id) {
+            const section = document.getElementById(id);
+            if (section) main.scrollTo({ top: section.offsetTop - 16, behavior: 'smooth' });
+        }
+        function updateActiveNav() {
+            const scrollPos = main.scrollTop + main.clientHeight / 3;
+            const sections = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
+            let current = sections[0];
+            for (const id of sections) {
+                const sec = document.getElementById(id);
+                if (sec && sec.offsetTop <= scrollPos) current = id;
+            }
+            navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
+        }
+        navItems.forEach(item => item.addEventListener('click', () => {
+            scrollToSection(item.dataset.target);
+        }));
+        main.addEventListener('scroll', updateActiveNav, { passive: true });
+
+        window.showWithdrawForm = function() {
+            document.getElementById('withdrawForm').style.display = 'block';
+            document.getElementById('historyCard').style.display = 'none';
+        };
+        window.hideWithdrawForm = function() {
+            document.getElementById('withdrawForm').style.display = 'none';
+        };
+        window.showHistory = function() {
+            document.getElementById('withdrawForm').style.display = 'none';
+            document.getElementById('historyCard').style.display = 'block';
+            loadWithdrawHistory();
+        };
+        window.hideHistory = function() {
+            document.getElementById('historyCard').style.display = 'none';
+        };
+
+        window.withdraw = function() {
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (!amount || amount <= 0 || amount > balance) {
+                alert(t('invalidAmount'));
+                return;
+            }
+            balance -= amount;
+            updateBalanceUI();
+            addActivity('Withdraw', `-${amount.toFixed(2)} USDT`);
+            document.getElementById('withdrawForm').style.display = 'none';
+            document.getElementById('amountInput').value = '';
+        };
+
+        function loadWithdrawHistory() {
+            const activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
+            const withdraws = activities.filter(a => a.type === 'Withdraw');
+            const container = document.getElementById('withdrawHistory');
+            if (!container) return;
+            container.innerHTML = withdraws.length === 0
+                ? `<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">${t('noWithdraws')}</div>`
+                : withdraws.map(w => `<div class="activity-row"><span>${w.amount}</span><span>${new Date(w.time).toLocaleString()}</span></div>`).join('');
+        }
+
+        window.completeTask = function(taskId) {
+            const reward = taskId === 1 ? 0.005 : 0.01;
+            balance += reward;
+            updateBalanceUI();
+            addActivity('Task', `+${reward.toFixed(3)} USDT`);
+            alert(`${t('taskDone')}${reward} USDT`);
+        };
+
+        window.spawnConfetti = function(e) {
+            const emojis = ['🎉','🎊','✨','💎'];
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('div');
+                p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                p.style.cssText = `position:fixed; left:${e.clientX}px; top:${e.clientY}px; font-size:${20+Math.random()*20}px; pointer-events:none; z-index:9999; transition: all 0.8s ease-out; opacity:1; transform: translate(0,0) rotate(0deg);`;
+                document.body.appendChild(p);
+                requestAnimationFrame(() => {
+                    p.style.transform = `translate(${Math.random()*200-100}px, ${Math.random()*200-100}px) rotate(${Math.random()*720}deg)`;
+                    p.style.opacity = '0';
+                });
+                setTimeout(() => p.remove(), 800);
+            }
+        };
+
+        if (claimBtn) claimBtn.addEventListener('click', claim);
+
+        function initApp() {
+            try {
+                setLang(currentLang);
+                updateBalanceUI();
+                loadActivities();
+                updateClaimButton();
+                loadDailyStreak();
+
+                if (tg?.initDataUnsafe?.user) {
+                    const user = tg.initDataUnsafe.user;
+                    document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                    document.getElementById('profileId').textContent = user.id;
+                    document.getElementById('profileAvatar').textContent = user.first_name?.charAt(0).toUpperCase() || '👤';
+                }
+
+                setInterval(updateClaimButton, 10000);
+            } catch (e) {
+                console.error('Init error:', e);
+            } finally {
+                hideSplash();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    } catch (e) {
+        console.error('Global script error:', e);
+        hideSplash();
+    }
+})();
+</script>
+</body>
+</html>
