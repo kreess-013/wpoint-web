@@ -134,6 +134,11 @@
         main::-webkit-scrollbar { display: none; }
         section { padding-top:6px; padding-bottom:6px; }
 
+        /* этот отступ гарантирует, что при скролле секция не уйдёт под header */
+        section {
+            scroll-margin-top: 100px;
+        }
+
         .section-wrapper {
             border: 1px solid var(--glass-border);
             border-radius: var(--radius);
@@ -394,7 +399,7 @@
                     <div class="stats-grid">
                         <div class="stat-item"><div class="stat-label" id="statEarnedLabel">Earned</div><div class="stat-value" id="statEarned">0</div></div>
                         <div class="stat-item"><div class="stat-label" id="statWithdrawnLabel">Withdrawn</div><div class="stat-value" id="statWithdrawn">0</div></div>
-                        <div class="stat-item"><div class="stat-label" id="statGamesLabel">Games</div><div class="stat-value" id="statGames">0</div></div>
+                        <div class="stat-item"><div class="stat-label" id="statGamesLabel">Streak</div><div class="stat-value" id="statGames">0</div></div>
                         <div class="stat-item"><div class="stat-label" id="statRefsLabel">Refs</div><div class="stat-value" id="statRefs">0</div></div>
                     </div>
                 </div>
@@ -440,9 +445,6 @@
                     <div class="wallet-action-btn" onclick="showWithdrawForm()">
                         <span class="wallet-action-icon">💸</span><span id="withdrawActionLabel">Withdraw</span>
                     </div>
-                    <div class="wallet-action-btn" onclick="alert('Send')">
-                        <span class="wallet-action-icon">📤</span><span id="sendActionLabel">Send</span>
-                    </div>
                     <div class="wallet-action-btn" onclick="showHistory()">
                         <span class="wallet-action-icon">📜</span><span id="historyActionLabel">History</span>
                     </div>
@@ -480,7 +482,6 @@
                         <div class="task-item"><span>Like the post</span><button onclick="completeTask(2)">Claim</button></div>
                     </div>
                 </div>
-                <!-- Пригласить друга -->
                 <div class="card">
                     <div class="label" id="referralTitle">👥 Invite a Friend</div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem;">
@@ -539,11 +540,11 @@
             const locale = {
                 en: {
                     profile: 'WGramm', faucet: 'Faucet', wallet: 'Wallet', tasks: 'Tasks', activity: 'Activity',
-                    statEarned: 'Earned', statWithdrawn: 'Withdrawn', statGames: 'Games', statRefs: 'Refs',
+                    statEarned: 'Earned', statWithdrawn: 'Withdrawn', statGames: 'Streak', statRefs: 'Refs',
                     dailyStreak: '🔥 Daily Streak', dailyStreakDesc: 'Login every day and get rewards',
                     claimStreak: 'CLAIM REWARD', faucetBalance: 'Your Balance', claim: '💧 Claim',
                     support: 'Support the project by interacting with ads ❤️', walletBalance: 'USDT',
-                    withdraw: 'Withdraw', send: 'Send', history: 'History', historyTitle: '📜 Withdraw history',
+                    withdraw: 'Withdraw', history: 'History', historyTitle: '📜 Withdraw history',
                     noWithdraws: 'No withdraws', dailyQuestsTitle: 'Daily Quests', tasksListTitle: 'Tasks',
                     activityTitle: 'Recent Activity', taskDone: 'Task completed! +', enterAmount: 'Enter amount',
                     withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount',
@@ -552,11 +553,11 @@
                 },
                 ru: {
                     profile: 'WGramm', faucet: 'Кран', wallet: 'Кошелёк', tasks: 'Задания', activity: 'Активность',
-                    statEarned: 'Заработано', statWithdrawn: 'Выведено', statGames: 'Игр', statRefs: 'Рефералов',
+                    statEarned: 'Заработано', statWithdrawn: 'Выведено', statGames: 'Стрик', statRefs: 'Рефералов',
                     dailyStreak: '🔥 Ежедневная серия', dailyStreakDesc: 'Заходите каждый день и получайте бонусы',
                     claimStreak: 'ЗАБРАТЬ НАГРАДУ', faucetBalance: 'Ваш баланс', claim: '💧 Забрать',
                     support: 'Поддержите проект, взаимодействуя с рекламой ❤️', walletBalance: 'USDT',
-                    withdraw: 'Вывести', send: 'Отправить', history: 'История', historyTitle: '📜 История выводов',
+                    withdraw: 'Вывести', history: 'История', historyTitle: '📜 История выводов',
                     noWithdraws: 'Нет выводов', dailyQuestsTitle: 'Ежедневные квесты', tasksListTitle: 'Задания',
                     activityTitle: 'Последние действия', taskDone: 'Задание выполнено! +', enterAmount: 'Введите сумму',
                     withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма',
@@ -586,7 +587,6 @@
                 document.getElementById('claimBtn').textContent = t('claim');
                 document.getElementById('supportText').textContent = t('support');
                 document.getElementById('withdrawActionLabel').textContent = t('withdraw');
-                document.getElementById('sendActionLabel').textContent = t('send');
                 document.getElementById('historyActionLabel').textContent = t('history');
                 document.getElementById('historyTitle').textContent = t('historyTitle');
                 document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle');
@@ -620,6 +620,7 @@
             const activityList = document.getElementById('activityList');
             const main = document.querySelector('main');
             const navItems = document.querySelectorAll('.nav-item');
+            const header = document.querySelector('header');
 
             function updateBalanceUI() {
                 const formatted = balance.toFixed(6);
@@ -773,20 +774,28 @@
                 alert(t('claimRefRewardBtn') + ' (заглушка)');
             };
 
+            // ИСПРАВЛЕННЫЙ СКРОЛЛ
             function scrollToSection(id) {
                 const section = document.getElementById(id);
-                if (section) main.scrollTo({ top: section.offsetTop - 16, behavior: 'smooth' });
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }
+
             function updateActiveNav() {
-                const scrollPos = main.scrollTop + main.clientHeight / 3;
+                const headerHeight = header ? header.offsetHeight + 20 : 90;
+                const scrollPos = main.scrollTop + headerHeight;
                 const sections = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
                 let current = sections[0];
                 for (const id of sections) {
                     const sec = document.getElementById(id);
-                    if (sec && sec.offsetTop <= scrollPos) current = id;
+                    if (sec && sec.offsetTop <= scrollPos) {
+                        current = id;
+                    }
                 }
                 navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
             }
+
             navItems.forEach(item => item.addEventListener('click', () => {
                 scrollToSection(item.dataset.target);
             }));
