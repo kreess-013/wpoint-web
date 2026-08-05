@@ -15,6 +15,7 @@
             --text-secondary: #aaaaaa;
             --radius: 24px;
             --nav-height: 80px;
+            --header-height: 56px;
             --font: 'SF Mono', 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -22,7 +23,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            background: radial-gradient(ellipse at 50% 0%, #0a0a10 0%, #040408 55%, #010102 100%);
+            background: #020205;
             font-family: var(--font);
             color: var(--text);
             height: 100vh;
@@ -34,42 +35,39 @@
             -webkit-font-smoothing: antialiased;
             user-select: none;
             letter-spacing: 0.3px;
+            position: relative;
         }
 
-        #splash {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: #010102; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 99999;
-        }
-        #splash .logo { font-size: 80px; animation: pulse 1.2s infinite; }
-        @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
-
-        .background {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
-        }
-        .blob {
-            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.1;
-            animation: float 18s infinite ease-in-out;
-        }
-        .blob1 { width:350px; height:350px; background:#5a4fcf; top:-150px; left:-100px; }
-        .blob2 { width:280px; height:280px; background:#009a7a; bottom:-100px; right:-80px; animation-delay:-8s; }
-        .blob3 { width:220px; height:220px; background:#c73a6a; top:40%; left:60%; animation-delay:-14s; }
-        @keyframes float {
-            0%,100% { transform:translate(0,0) scale(1); }
-            25% { transform:translate(40px,-30px) scale(1.08); }
-            50% { transform:translate(-20px,50px) scale(0.92); }
-            75% { transform:translate(-50px,-20px) scale(1.05); }
+        /* Фоновая текстура с мягкими белыми пятнами и градиентом */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                /* мягкий белый градиент сверху */
+                radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.06) 0%, transparent 60%),
+                /* лёгкий градиент снизу */
+                radial-gradient(ellipse at 50% 80%, rgba(0,0,0,0.3) 0%, transparent 60%),
+                /* текстура шума (очень тонкая) */
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+            background-blend-mode: normal;
         }
 
+        /* Основной контейнер приложения */
         .app {
-            position: relative; z-index:1;
+            position: relative;
+            z-index: 1;
             width: 100%;
             height: 100vh;
             height: 100dvh;
-            background: rgba(4,4,8,0.55); backdrop-filter: blur(40px);
+            background: rgba(4,4,8,0.35);
+            backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
-            display: flex; flex-direction: column;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
             border-radius: 0;
             margin: 0;
             max-width: 100%;
@@ -77,18 +75,41 @@
             max-height: 100dvh;
             padding-top: var(--safe-top);
         }
+
+        /* Верхняя панель (теперь стеклянная) */
         header {
+            position: absolute;
+            top: calc(24px + var(--safe-top)); /* опущена вниз */
+            left: 12px;
+            right: 12px;
+            height: var(--header-height);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 28px 20px 12px;
-            font-weight: 600; font-size: 1.3rem; letter-spacing: 1px;
-            background: transparent; flex-shrink: 0; color: var(--text);
+            padding: 0 20px;
+            font-weight: 600;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+            background: rgba(20,20,25,0.35);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 28px;
+            color: var(--text);
             text-transform: uppercase;
+            z-index: 20;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
         }
+
+        /* Основная прокручиваемая область */
         main {
-            flex:1; overflow-y: auto; padding: 0 16px 12px;
-            scrollbar-width: none; scroll-behavior: smooth;
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 12px;
+            padding-top: calc(var(--header-height) + 40px + var(--safe-top)); /* отступ под header */
+            padding-bottom: calc(var(--nav-height) + 20px + var(--safe-bottom));
+            scrollbar-width: none;
+            scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
         main::-webkit-scrollbar { display: none; }
@@ -163,58 +184,37 @@
             border-bottom: 1px solid rgba(255,255,255,0.06); font-size:0.9rem;
         }
 
-        /* ---- ПАНЕЛЬ НАВИГАЦИИ (возвращаем скругление и обводку, убираем чёрный фон) ---- */
+        /* Нижняя панель навигации */
         nav {
+            position: absolute;
+            bottom: 16px;
+            left: 12px;
+            right: 12px;
             display: flex;
             justify-content: space-around;
             align-items: center;
             height: var(--nav-height);
-
-            background: rgba(255,255,255,0.04);
-
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-
+            background: rgba(20,20,25,0.35);
+            backdrop-filter: blur(50px);
+            -webkit-backdrop-filter: blur(50px);
             border-radius: 32px;
-
-            margin: 0 12px 10px 12px;
             padding: 0 8px;
             padding-bottom: var(--safe-bottom);
-
-            flex-shrink:0;
-            z-index:10;
-
-            border:1px solid rgba(255,255,255,0.12);
-
-            box-shadow:
-                0 0 20px rgba(255,255,255,0.05);
+            z-index: 10;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.08);
         }
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-size: 0.65rem;
-            color: rgba(255,255,255,0.7);
-            flex: 1;
-            padding: 6px 0;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border-radius: 20px;
-            letter-spacing: 0.3px;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 4px;
+            font-size: 0.65rem; color: rgba(255,255,255,0.7);
+            flex: 1; padding: 6px 0;
+            transition: all 0.2s ease; cursor: pointer;
+            border-radius: 20px; letter-spacing: 0.3px;
         }
-        .nav-item.active {
-            color: #fff;
-            transform: translateY(-2px);
-        }
-        .nav-icon {
-            font-size: 1.5rem;
-            transition: transform 0.2s;
-        }
-        .nav-item.active .nav-icon {
-            transform: scale(1.1);
-        }
+        .nav-item.active { color: #fff; transform: translateY(-2px); }
+        .nav-icon { font-size: 1.5rem; transition: transform 0.2s; }
+        .nav-item.active .nav-icon { transform: scale(1.1); }
 
         .avatar {
             width:80px; height:80px; border-radius:50%;
@@ -222,16 +222,12 @@
             display:flex; align-items:center; justify-content:center;
             font-size:2.5rem; margin:0 auto 12px; border:2px solid rgba(255,255,255,0.25);
         }
-        .stats-grid {
-            display:grid; grid-template-columns:1fr 1fr; gap:12px;
-        }
+        .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
         .stat-item { text-align:center; }
         .stat-label { font-size:13px; opacity:0.7; margin-bottom:4px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; }
         .stat-value { font-size:24px; font-weight:900; color: var(--text); }
 
-        .streak-grid {
-            display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:12px;
-        }
+        .streak-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:12px; }
         .streak-day {
             background: rgba(20,20,28,0.7); border:1px solid rgba(255,255,255,0.15);
             border-radius:14px; padding:10px 4px; text-align:center;
@@ -261,9 +257,7 @@
         }
         .wallet-balance { font-size:38px; font-weight:900; color:#fff; }
 
-        .wallet-actions {
-            display: flex; justify-content: space-around; margin: 20px 0;
-        }
+        .wallet-actions { display: flex; justify-content: space-around; margin: 20px 0; }
         .wallet-action-btn {
             display: flex; flex-direction: column; align-items: center;
             cursor: pointer; transition: transform 0.2s;
@@ -302,12 +296,6 @@
 <div id="splash">
     <div class="logo">💎</div>
     <div style="color:#aaa; font-size:22px; font-weight:600; letter-spacing:4px; margin-top:20px;">WGramm</div>
-</div>
-
-<div class="background">
-    <div class="blob blob1"></div>
-    <div class="blob blob2"></div>
-    <div class="blob blob3"></div>
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
