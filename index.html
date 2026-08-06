@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WGramm – Dark Contrast UI</title>
     <style>
-        /* все стили без изменений, как в предыдущей версии */
         :root {
             --bg: #020205;
             --glass: rgba(10,10,14,0.85);
@@ -21,7 +20,7 @@
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
- 
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background: #020205;
@@ -135,6 +134,7 @@
         main::-webkit-scrollbar { display: none; }
         section { padding-top:6px; padding-bottom:6px; }
 
+        /* этот отступ гарантирует, что при скролле секция не уйдёт под header */
         section {
             scroll-margin-top: 100px;
         }
@@ -468,7 +468,6 @@
         <section id="tasks">
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
-                <!-- ВОЗВРАЩЁННЫЙ БЛОК Daily Quests -->
                 <div class="card">
                     <div class="label" id="dailyQuestsTitle">Daily Quests</div>
                     <div id="dailyQuests">
@@ -478,13 +477,16 @@
                 </div>
                 <div class="card">
                     <div class="label" id="tasksListTitle">Tasks</div>
-                    <div id="tasksList"></div>
+                    <div id="tasksList">
+                        <div class="task-item"><span>Subscribe to channel</span><button onclick="completeTask(1)">Open</button></div>
+                        <div class="task-item"><span>Like the post</span><button onclick="completeTask(2)">Claim</button></div>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="label" id="referralTitle">👥 Invite a Friend</div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem;">
                         <span style="color:var(--text-secondary);" id="referralLinkLabel">Referral link</span>
-                        <span style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:8px;" id="referralLink">https://t.me/WGrammBot?start=REF...</span>
+                        <span style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:8px;">https://t.me/WGrammBot?start=ref123</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem;">
                         <span style="color:var(--text-secondary);" id="referralEarnedLabel">Earned from referrals</span>
@@ -518,427 +520,380 @@
 
 <script>
     (function() {
-        const API_BASE = 'https://wpoint-backend.onrender.com'; // замените на ваш URL
-        let apiToken = null;
-        let userData = null;
-
-        const locale = {
-            en: {
-                profile: 'WGramm', faucet: 'Faucet', wallet: 'Wallet', tasks: 'Tasks', activity: 'Activity',
-                statEarned: 'Earned', statWithdrawn: 'Withdrawn', statGames: 'Streak', statRefs: 'Refs',
-                dailyStreak: '🔥 Daily Streak', dailyStreakDesc: 'Login every day and get rewards',
-                claimStreak: 'CLAIM REWARD', faucetBalance: 'Your Balance', claim: '💧 Claim',
-                support: 'Support the project by interacting with ads ❤️', walletBalance: 'USDT',
-                withdraw: 'Withdraw', history: 'History', historyTitle: '📜 Withdraw history',
-                noWithdraws: 'No withdraws', dailyQuestsTitle: 'Daily Quests', tasksListTitle: 'Tasks',
-                activityTitle: 'Recent Activity', taskDone: 'Task completed! +', enterAmount: 'Enter amount',
-                withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount',
-                referralTitle: '👥 Invite a Friend', referralLinkLabel: 'Referral link',
-                referralEarnedLabel: 'Earned from referrals', claimRefRewardBtn: 'Claim Reward'
-            },
-            ru: {
-                profile: 'WGramm', faucet: 'Кран', wallet: 'Кошелёк', tasks: 'Задания', activity: 'Активность',
-                statEarned: 'Заработано', statWithdrawn: 'Выведено', statGames: 'Стрик', statRefs: 'Рефералов',
-                dailyStreak: '🔥 Ежедневная серия', dailyStreakDesc: 'Заходите каждый день и получайте бонусы',
-                claimStreak: 'ЗАБРАТЬ НАГРАДУ', faucetBalance: 'Ваш баланс', claim: '💧 Забрать',
-                support: 'Поддержите проект, взаимодействуя с рекламой ❤️', walletBalance: 'USDT',
-                withdraw: 'Вывести', history: 'История', historyTitle: '📜 История выводов',
-                noWithdraws: 'Нет выводов', dailyQuestsTitle: 'Ежедневные квесты', tasksListTitle: 'Задания',
-                activityTitle: 'Последние действия', taskDone: 'Задание выполнено! +', enterAmount: 'Введите сумму',
-                withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма',
-                referralTitle: '👥 Пригласить друга', referralLinkLabel: 'Реферальная ссылка',
-                referralEarnedLabel: 'Заработано с рефералов', claimRefRewardBtn: 'Собрать награду'
-            }
-        };
-
-        let currentLang = localStorage.getItem('lang') || 'en';
-        function t(key) { return locale[currentLang]?.[key] || key; }
-        function applyAllLanguage() {
-            document.getElementById('faucetTitle').textContent = t('faucet');
-            document.getElementById('walletTitle').textContent = t('wallet');
-            document.getElementById('tasksTitle').textContent = t('tasks');
-            document.getElementById('activityTitleHeader').textContent = t('activity');
-            document.querySelectorAll('.nav-item span:last-child').forEach((el, i) => {
-                const keys = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
-                el.textContent = t(keys[i]);
-            });
-            document.getElementById('statEarnedLabel').textContent = t('statEarned');
-            document.getElementById('statWithdrawnLabel').textContent = t('statWithdrawn');
-            document.getElementById('statGamesLabel').textContent = t('statGames');
-            document.getElementById('statRefsLabel').textContent = t('statRefs');
-            document.getElementById('dailyStreakTitle').textContent = t('dailyStreak');
-            document.getElementById('dailyStreakDesc').textContent = t('dailyStreakDesc');
-            document.getElementById('dailyBtn').textContent = t('claimStreak');
-            document.getElementById('faucetBalanceLabel').textContent = t('faucetBalance');
-            document.getElementById('claimBtn').textContent = t('claim');
-            document.getElementById('supportText').textContent = t('support');
-            document.getElementById('withdrawActionLabel').textContent = t('withdraw');
-            document.getElementById('historyActionLabel').textContent = t('history');
-            document.getElementById('historyTitle').textContent = t('historyTitle');
-            document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle'); // ✅ перевод
-            document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
-            document.getElementById('activityTitle').textContent = t('activityTitle');
-            document.getElementById('referralTitle').textContent = t('referralTitle');
-            document.getElementById('referralLinkLabel').textContent = t('referralLinkLabel');
-            document.getElementById('referralEarnedLabel').textContent = t('referralEarnedLabel');
-            document.getElementById('claimRefRewardBtn').textContent = t('claimRefRewardBtn');
+        function hideSplash() {
+            var splash = document.getElementById('splash');
+            var app = document.getElementById('mainApp');
+            if (splash) splash.style.display = 'none';
+            if (app) app.style.display = 'flex';
         }
 
-        window.setLang = function(lang) {
-            currentLang = lang;
-            localStorage.setItem('lang', lang);
-            document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
-            document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
-            applyAllLanguage();
-            if (apiToken) {
-                apiCall('PATCH', '/user/settings', { language: lang });
-            }
-        };
-
-        async function apiCall(method, path, body) {
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            if (apiToken) {
-                headers['Authorization'] = `Bearer ${apiToken}`;
-            }
-            try {
-                const res = await fetch(API_BASE + path, {
-                    method,
-                    headers,
-                    body: body ? JSON.stringify(body) : undefined
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.detail || 'API error');
-                }
-                return data;
-            } catch (err) {
-                console.error('API call error:', err);
-                alert('Network error: ' + err.message);
-                throw err;
-            }
-        }
-
-        async function initApp() {
+        try {
             const tg = window.Telegram?.WebApp;
-            if (!tg || !tg.initData) {
-                alert('Пожалуйста, откройте приложение через Telegram Mini App.');
-                return;
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                tg.setHeaderColor('#010102');
+                tg.setBackgroundColor('#010102');
             }
-            try {
-                const authResult = await fetch(API_BASE + '/auth', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ initData: tg.initData })
-                }).then(r => r.json());
 
-                if (!authResult.success) {
-                    throw new Error(authResult.error || 'Auth failed');
+            let currentLang = localStorage.getItem('lang') || 'en';
+            const locale = {
+                en: {
+                    profile: 'WGramm', faucet: 'Faucet', wallet: 'Wallet', tasks: 'Tasks', activity: 'Activity',
+                    statEarned: 'Earned', statWithdrawn: 'Withdrawn', statGames: 'Streak', statRefs: 'Refs',
+                    dailyStreak: '🔥 Daily Streak', dailyStreakDesc: 'Login every day and get rewards',
+                    claimStreak: 'CLAIM REWARD', faucetBalance: 'Your Balance', claim: '💧 Claim',
+                    support: 'Support the project by interacting with ads ❤️', walletBalance: 'USDT',
+                    withdraw: 'Withdraw', history: 'History', historyTitle: '📜 Withdraw history',
+                    noWithdraws: 'No withdraws', dailyQuestsTitle: 'Daily Quests', tasksListTitle: 'Tasks',
+                    activityTitle: 'Recent Activity', taskDone: 'Task completed! +', enterAmount: 'Enter amount',
+                    withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount',
+                    referralTitle: '👥 Invite a Friend', referralLinkLabel: 'Referral link',
+                    referralEarnedLabel: 'Earned from referrals', claimRefRewardBtn: 'Claim Reward'
+                },
+                ru: {
+                    profile: 'WGramm', faucet: 'Кран', wallet: 'Кошелёк', tasks: 'Задания', activity: 'Активность',
+                    statEarned: 'Заработано', statWithdrawn: 'Выведено', statGames: 'Стрик', statRefs: 'Рефералов',
+                    dailyStreak: '🔥 Ежедневная серия', dailyStreakDesc: 'Заходите каждый день и получайте бонусы',
+                    claimStreak: 'ЗАБРАТЬ НАГРАДУ', faucetBalance: 'Ваш баланс', claim: '💧 Забрать',
+                    support: 'Поддержите проект, взаимодействуя с рекламой ❤️', walletBalance: 'USDT',
+                    withdraw: 'Вывести', history: 'История', historyTitle: '📜 История выводов',
+                    noWithdraws: 'Нет выводов', dailyQuestsTitle: 'Ежедневные квесты', tasksListTitle: 'Задания',
+                    activityTitle: 'Последние действия', taskDone: 'Задание выполнено! +', enterAmount: 'Введите сумму',
+                    withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма',
+                    referralTitle: '👥 Пригласить друга', referralLinkLabel: 'Реферальная ссылка',
+                    referralEarnedLabel: 'Заработано с рефералов', claimRefRewardBtn: 'Собрать награду'
                 }
-                apiToken = authResult.token;
-                userData = authResult.user;
+            };
 
-                if (userData.language && userData.language !== currentLang) {
-                    currentLang = userData.language;
-                    localStorage.setItem('lang', currentLang);
-                }
-                setLang(currentLang);
-
-                await loadProfile();
-                await loadDailyStreakStatus();
-                await loadTasks();
-                await loadActivities();
-                await loadReferralInfo();
-
-                updateBalanceUI(userData.balance);
-                startClaimTimer();
-
-                document.getElementById('splash').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'flex';
-            } catch (e) {
-                console.error(e);
-                alert('Ошибка инициализации: ' + e.message);
+            function t(key) { return locale[currentLang]?.[key] || key; }
+            function applyAllLanguage() {
+                document.getElementById('faucetTitle').textContent = t('faucet');
+                document.getElementById('walletTitle').textContent = t('wallet');
+                document.getElementById('tasksTitle').textContent = t('tasks');
+                document.getElementById('activityTitleHeader').textContent = t('activity');
+                document.querySelectorAll('.nav-item span:last-child').forEach((el, i) => {
+                    const keys = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
+                    el.textContent = t(keys[i]);
+                });
+                document.getElementById('statEarnedLabel').textContent = t('statEarned');
+                document.getElementById('statWithdrawnLabel').textContent = t('statWithdrawn');
+                document.getElementById('statGamesLabel').textContent = t('statGames');
+                document.getElementById('statRefsLabel').textContent = t('statRefs');
+                document.getElementById('dailyStreakTitle').textContent = t('dailyStreak');
+                document.getElementById('dailyStreakDesc').textContent = t('dailyStreakDesc');
+                document.getElementById('dailyBtn').textContent = t('claimStreak');
+                document.getElementById('faucetBalanceLabel').textContent = t('faucetBalance');
+                document.getElementById('claimBtn').textContent = t('claim');
+                document.getElementById('supportText').textContent = t('support');
+                document.getElementById('withdrawActionLabel').textContent = t('withdraw');
+                document.getElementById('historyActionLabel').textContent = t('history');
+                document.getElementById('historyTitle').textContent = t('historyTitle');
+                document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle');
+                document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
+                document.getElementById('activityTitle').textContent = t('activityTitle');
+                document.getElementById('referralTitle').textContent = t('referralTitle');
+                document.getElementById('referralLinkLabel').textContent = t('referralLinkLabel');
+                document.getElementById('referralEarnedLabel').textContent = t('referralEarnedLabel');
+                document.getElementById('claimRefRewardBtn').textContent = t('claimRefRewardBtn');
             }
-        }
 
-        async function loadProfile() {
-            const profile = await apiCall('GET', '/user/profile');
-            userData.balance = profile.user.balance;
-            updateBalanceUI(profile.user.balance);
-            document.getElementById('statEarned').textContent = profile.stats.total_earned.toFixed(2);
-            document.getElementById('statWithdrawn').textContent = profile.stats.total_withdrawn.toFixed(2);
-            document.getElementById('statGames').textContent = profile.stats.streak;
-            document.getElementById('statRefs').textContent = profile.stats.referral_count;
-            document.getElementById('referralEarnedValue').textContent = profile.stats.referral_balance.toFixed(2) + ' USDT';
-            document.getElementById('profileName').textContent = userData.first_name || 'User';
-            document.getElementById('profileId').textContent = userData.telegram_id;
-            document.getElementById('profileAvatar').textContent = (userData.first_name || '👤').charAt(0).toUpperCase();
-            document.getElementById('referralLink').textContent = `https://t.me/WGrammBot?start=REF${userData.telegram_id}`;
-        }
+            window.setLang = function(lang) {
+                currentLang = lang;
+                localStorage.setItem('lang', lang);
+                document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
+                document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+                applyAllLanguage();
+            };
 
-        function updateBalanceUI(balance) {
-            const formatted = Number(balance).toFixed(6);
-            document.getElementById('balanceDisplay').textContent = formatted;
-            document.getElementById('walletBalance').textContent = formatted;
-        }
+            let balance = parseFloat(localStorage.getItem('faucet_balance') || '0');
+            let lastClaim = parseInt(localStorage.getItem('faucet_lastClaim') || '0');
+            const CLAIM_COOLDOWN = 3600000;
+            const CLAIM_AMOUNT = 0.01;
 
-        let claimTimerInterval = null;
-        function startClaimTimer() {
-            updateClaimButtonFromServer();
-            claimTimerInterval = setInterval(updateClaimButtonFromServer, 10000);
-        }
-
-        async function updateClaimButtonFromServer() {
-            try {
-                const res = await apiCall('GET', '/faucet/status');
-                if (res.can_claim) {
-                    document.getElementById('claimBtn').disabled = false;
-                    document.getElementById('timerMsg').textContent = 'Ready to claim!';
-                } else {
-                    document.getElementById('claimBtn').disabled = true;
-                    document.getElementById('timerMsg').textContent = `Next claim in ${formatTime(res.remaining)}`;
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function formatTime(seconds) {
-            const m = Math.floor(seconds / 60);
-            const s = seconds % 60;
-            return `${m}m ${s}s`;
-        }
-
-        async function claim() {
-            runClaimAnimation(0.01);
-            try {
-                const res = await apiCall('POST', '/faucet/claim');
-                if (res.success) {
-                    userData.balance = res.new_balance;
-                    updateBalanceUI(userData.balance);
-                    updateClaimButtonFromServer();
-                    loadActivities();
-                } else if (res.error === 'cooldown') {
-                    alert('Cooldown active');
-                }
-            } catch (e) {}
-        }
-
-        function runClaimAnimation(amount) {
-            const terminal = document.getElementById("terminalText");
-            terminal.innerHTML = "";
-            const lines = [
-                "> START CLAIM PROCESS",
-                "> CONNECTING POWER CORE...",
-                "> VERIFYING USER NODE...",
-                "> CALCULATING REWARD...",
-                "> GENERATING " + amount.toFixed(5) + " USDT",
-                "> SENDING REWARD...",
-                "> ACTIVITY UPDATED",
-                "> CLAIM COMPLETE ✓"
+            const balanceDisplays = [
+                document.getElementById('balanceDisplay'),
+                document.getElementById('walletBalance')
             ];
-            let index = 0;
-            function nextLine() {
-                if (index >= lines.length) {
-                    setTimeout(() => {
-                        terminal.innerHTML = `<div class="terminal-line terminal-success">+${amount.toFixed(5)} USDT RECEIVED</div>`;
-                    }, 700);
+            const claimBtn = document.getElementById('claimBtn');
+            const timerMsg = document.getElementById('timerMsg');
+            const activityList = document.getElementById('activityList');
+            const main = document.querySelector('main');
+            const navItems = document.querySelectorAll('.nav-item');
+            const header = document.querySelector('header');
+
+            function updateBalanceUI() {
+                const formatted = balance.toFixed(6);
+                balanceDisplays.forEach(el => { if (el) el.textContent = formatted; });
+                localStorage.setItem('faucet_balance', balance.toString());
+            }
+
+            function updateClaimButton() {
+                const now = Date.now();
+                const diff = now - lastClaim;
+                if (diff < CLAIM_COOLDOWN) {
+                    claimBtn.disabled = true;
+                    const remaining = Math.ceil((CLAIM_COOLDOWN - diff) / 1000);
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    timerMsg.textContent = `Next claim in ${mins}m ${secs}s`;
+                } else {
+                    claimBtn.disabled = false;
+                    timerMsg.textContent = 'Ready to claim!';
+                }
+            }
+
+            function runClaimAnimation(amount) {
+                const terminal = document.getElementById("terminalText");
+                terminal.innerHTML = "";
+
+                const lines = [
+                    "> START CLAIM PROCESS",
+                    "> CONNECTING POWER CORE...",
+                    "> VERIFYING USER NODE...",
+                    "> CALCULATING REWARD...",
+                    "> GENERATING " + amount.toFixed(5) + " USDT",
+                    "> SENDING REWARD...",
+                    "> ACTIVITY UPDATED",
+                    "> CLAIM COMPLETE ✓"
+                ];
+
+                let index = 0;
+                function nextLine() {
+                    if (index >= lines.length) {
+                        setTimeout(() => {
+                            terminal.innerHTML = `<div class="terminal-line terminal-success">+${amount.toFixed(5)} USDT RECEIVED</div>`;
+                        }, 700);
+                        return;
+                    }
+                    const div = document.createElement("div");
+                    div.className = "terminal-line";
+                    div.textContent = lines[index];
+                    terminal.appendChild(div);
+                    index++;
+                    setTimeout(nextLine, 600);
+                }
+                nextLine();
+            }
+
+            window.claim = function() {
+                if (Date.now() - lastClaim < CLAIM_COOLDOWN) return;
+
+                claimBtn.disabled = true;
+                timerMsg.textContent = 'Processing...';
+
+                runClaimAnimation(CLAIM_AMOUNT);
+
+                setTimeout(() => {
+                    balance += CLAIM_AMOUNT;
+                    lastClaim = Date.now();
+                    localStorage.setItem('faucet_lastClaim', lastClaim);
+                    updateBalanceUI();
+                    addActivity('Claim', `+${CLAIM_AMOUNT.toFixed(5)} USDT`);
+                    updateClaimButton();
+                }, 4500);
+            };
+
+            function addActivity(type, amount) {
+                const row = document.createElement('div');
+                row.className = 'activity-row';
+                row.innerHTML = `<span>${type}</span><span>${amount}</span>`;
+                activityList.prepend(row);
+                let activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
+                activities.unshift({ type, amount, time: Date.now() });
+                if (activities.length > 20) activities.pop();
+                localStorage.setItem('faucet_activities', JSON.stringify(activities));
+            }
+
+            function loadActivities() {
+                const activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
+                activityList.innerHTML = '';
+                if (activities.length === 0) {
+                    activityList.innerHTML = '<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">Empty</div>';
                     return;
                 }
-                const div = document.createElement("div");
-                div.className = "terminal-line";
-                div.textContent = lines[index];
-                terminal.appendChild(div);
-                index++;
-                setTimeout(nextLine, 600);
+                activities.forEach(a => {
+                    const row = document.createElement('div');
+                    row.className = 'activity-row';
+                    row.innerHTML = `<span>${a.type}</span><span>${a.amount}</span>`;
+                    activityList.appendChild(row);
+                });
             }
-            nextLine();
-        }
 
-        document.getElementById('claimBtn').addEventListener('click', claim);
-
-        async function loadDailyStreakStatus() {
-            const status = await apiCall('GET', '/daily-streak/status');
-            renderStreakGrid(status.current_day, status.rewards);
-            const btn = document.getElementById('dailyBtn');
-            btn.disabled = status.claimed_today;
-            btn.textContent = status.claimed_today ? 'Already claimed today' : t('claimStreak');
-        }
-
-        function renderStreakGrid(currentDay, rewards) {
-            const grid = document.getElementById('streakGrid');
-            grid.innerHTML = '';
-            for (let i = 1; i <= 7; i++) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'streak-day';
-                if (i === currentDay) dayEl.classList.add('active');
-                else if (i < currentDay) dayEl.classList.add('claimed');
-                dayEl.innerHTML = `<div class="streak-num">${i}</div><div class="streak-reward">${rewards[i-1].toFixed(2)}</div>`;
-                grid.appendChild(dayEl);
-            }
-        }
-
-        window.claimDailyStreak = async function() {
-            const res = await apiCall('POST', '/daily-streak/claim');
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
-                loadDailyStreakStatus();
-                loadActivities();
-            } else {
-                alert(res.error);
-            }
-        };
-
-        async function loadTasks() {
-            const data = await apiCall('GET', '/tasks');
-            const container = document.getElementById('tasksList');
-            container.innerHTML = '';
-            data.tasks.forEach(task => {
-                const div = document.createElement('div');
-                div.className = 'task-item';
-                const desc = currentLang === 'ru' ? task.description_ru : task.description_en;
-                div.innerHTML = `<span>${desc}</span>`;
-                if (task.completed) {
-                    div.innerHTML += '<span class="badge">Done</span>';
-                } else {
-                    const btn = document.createElement('button');
-                    btn.textContent = 'Claim';
-                    btn.onclick = () => completeTask(task.id);
-                    div.appendChild(btn);
+            const streakRewards = [50, 60, 70, 80, 90, 100, 150];
+            function loadDailyStreak() {
+                const today = new Date().toDateString();
+                const lastDate = localStorage.getItem('daily_streak_date');
+                let streakDay = parseInt(localStorage.getItem('daily_streak_day') || '1');
+                if (lastDate !== today) {
+                    const yesterday = new Date(Date.now() - 86400000).toDateString();
+                    if (lastDate === yesterday) {
+                        streakDay = (streakDay % 7) + 1;
+                    } else {
+                        streakDay = 1;
+                    }
+                    localStorage.setItem('daily_streak_day', streakDay);
+                    localStorage.setItem('daily_streak_date', today);
+                    localStorage.removeItem('daily_streak_claimed');
                 }
-                container.appendChild(div);
-            });
-        }
-
-        window.completeTask = async function(taskId) {
-            const res = await apiCall('POST', `/tasks/${taskId}/complete`);
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
-                loadTasks();
-                loadActivities();
-                alert(`${t('taskDone')}${res.reward} USDT`);
-            } else {
-                alert(res.error);
+                renderStreakGrid(streakDay);
+                const claimed = localStorage.getItem('daily_streak_claimed') === 'true';
+                const btn = document.getElementById('dailyBtn');
+                if (btn) {
+                    btn.disabled = claimed;
+                    btn.textContent = claimed ? 'Already claimed today' : t('claimStreak');
+                }
             }
-        };
 
-        async function loadReferralInfo() {
-            const stats = await apiCall('GET', '/referral/stats');
-            document.getElementById('statRefs').textContent = stats.referral_count;
-            document.getElementById('referralEarnedValue').textContent = stats.referral_balance.toFixed(2) + ' USDT';
-        }
-
-        window.claimRefReward = async function() {
-            const res = await apiCall('POST', '/referral/claim');
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
-                document.getElementById('referralEarnedValue').textContent = '0.00 USDT';
-                loadActivities();
-            } else {
-                alert(res.error);
+            function renderStreakGrid(currentDay) {
+                const grid = document.getElementById('streakGrid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                for (let i = 1; i <= 7; i++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'streak-day';
+                    if (i === currentDay) dayEl.classList.add('active');
+                    else if (i < currentDay) dayEl.classList.add('claimed');
+                    dayEl.innerHTML = `<div class="streak-num">${i}</div><div class="streak-reward">${(streakRewards[i-1]*0.01).toFixed(2)}</div>`;
+                    grid.appendChild(dayEl);
+                }
             }
-        };
 
-        async function loadActivities() {
-            const data = await apiCall('GET', '/activities');
-            const container = document.getElementById('activityList');
-            container.innerHTML = '';
-            if (data.activities.length === 0) {
-                container.innerHTML = '<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">Empty</div>';
-                return;
-            }
-            data.activities.forEach(a => {
-                const row = document.createElement('div');
-                row.className = 'activity-row';
-                row.innerHTML = `<span>${a.type}</span><span>${a.amount}</span>`;
-                container.appendChild(row);
-            });
-        }
+            window.claimDailyStreak = function() {
+                if (localStorage.getItem('daily_streak_claimed') === 'true') return;
+                const day = parseInt(localStorage.getItem('daily_streak_day') || '1');
+                const rewardUsdt = streakRewards[day-1] * 0.01;
+                balance += rewardUsdt;
+                updateBalanceUI();
+                addActivity('Daily Streak', `+${rewardUsdt.toFixed(2)} USDT`);
+                localStorage.setItem('daily_streak_claimed', 'true');
+                loadDailyStreak();
+            };
 
-        window.showWithdrawForm = function() {
-            document.getElementById('withdrawForm').style.display = 'block';
-            document.getElementById('historyCard').style.display = 'none';
-        };
-        window.hideWithdrawForm = function() {
-            document.getElementById('withdrawForm').style.display = 'none';
-        };
-        window.showHistory = async function() {
-            document.getElementById('withdrawForm').style.display = 'none';
-            document.getElementById('historyCard').style.display = 'block';
-            const data = await apiCall('GET', '/withdrawals');
-            const container = document.getElementById('withdrawHistory');
-            container.innerHTML = '';
-            if (data.withdrawals.length === 0) {
-                container.innerHTML = `<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">${t('noWithdraws')}</div>`;
-                return;
-            }
-            data.withdrawals.forEach(w => {
-                const row = document.createElement('div');
-                row.className = 'activity-row';
-                row.innerHTML = `<span>${w.amount} USDT (fee ${w.fee})</span><span>${new Date(w.created_at).toLocaleString()}</span>`;
-                container.appendChild(row);
-            });
-        };
-        window.hideHistory = function() {
-            document.getElementById('historyCard').style.display = 'none';
-        };
+            window.claimRefReward = function() {
+                alert(t('claimRefRewardBtn') + ' (заглушка)');
+            };
 
-        window.withdraw = async function() {
-            const wallet = document.getElementById('walletAddressInput').value.trim();
-            const amount = parseFloat(document.getElementById('amountInput').value);
-            if (!wallet || !amount || amount <= 0) {
-                alert(t('invalidAmount'));
-                return;
+            // ИСПРАВЛЕННЫЙ СКРОЛЛ
+            function scrollToSection(id) {
+                const section = document.getElementById(id);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }
-            const res = await apiCall('POST', '/withdraw', { wallet_address: wallet, amount });
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
+
+            function updateActiveNav() {
+                const headerHeight = header ? header.offsetHeight + 20 : 90;
+                const scrollPos = main.scrollTop + headerHeight;
+                const sections = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
+                let current = sections[0];
+                for (const id of sections) {
+                    const sec = document.getElementById(id);
+                    if (sec && sec.offsetTop <= scrollPos) {
+                        current = id;
+                    }
+                }
+                navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
+            }
+
+            navItems.forEach(item => item.addEventListener('click', () => {
+                scrollToSection(item.dataset.target);
+            }));
+            main.addEventListener('scroll', updateActiveNav, { passive: true });
+
+            window.showWithdrawForm = function() {
+                document.getElementById('withdrawForm').style.display = 'block';
+                document.getElementById('historyCard').style.display = 'none';
+            };
+            window.hideWithdrawForm = function() {
+                document.getElementById('withdrawForm').style.display = 'none';
+            };
+            window.showHistory = function() {
+                document.getElementById('withdrawForm').style.display = 'none';
+                document.getElementById('historyCard').style.display = 'block';
+                loadWithdrawHistory();
+            };
+            window.hideHistory = function() {
+                document.getElementById('historyCard').style.display = 'none';
+            };
+
+            window.withdraw = function() {
+                const amount = parseFloat(document.getElementById('amountInput').value);
+                if (!amount || amount <= 0 || amount > balance) {
+                    alert(t('invalidAmount'));
+                    return;
+                }
+                balance -= amount;
+                updateBalanceUI();
+                addActivity('Withdraw', `-${amount.toFixed(2)} USDT`);
                 document.getElementById('withdrawForm').style.display = 'none';
                 document.getElementById('amountInput').value = '';
-                alert(t('withdrawSuccess'));
-                loadActivities();
-            } else {
-                alert(res.error);
+            };
+
+            function loadWithdrawHistory() {
+                const activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
+                const withdraws = activities.filter(a => a.type === 'Withdraw');
+                const container = document.getElementById('withdrawHistory');
+                if (!container) return;
+                container.innerHTML = withdraws.length === 0
+                    ? `<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">${t('noWithdraws')}</div>`
+                    : withdraws.map(w => `<div class="activity-row"><span>${w.amount}</span><span>${new Date(w.time).toLocaleString()}</span></div>`).join('');
             }
-        };
 
-        function scrollToSection(id) {
-            const section = document.getElementById(id);
-            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+            window.completeTask = function(taskId) {
+                const reward = taskId === 1 ? 0.005 : 0.01;
+                balance += reward;
+                updateBalanceUI();
+                addActivity('Task', `+${reward.toFixed(3)} USDT`);
+                alert(`${t('taskDone')}${reward} USDT`);
+            };
 
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => item.addEventListener('click', () => {
-            scrollToSection(item.dataset.target);
-        }));
+            window.spawnConfetti = function(e) {
+                const emojis = ['🎉','🎊','✨','💎'];
+                for (let i = 0; i < 12; i++) {
+                    const p = document.createElement('div');
+                    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    p.style.cssText = `position:fixed; left:${e.clientX}px; top:${e.clientY}px; font-size:${20+Math.random()*20}px; pointer-events:none; z-index:9999; transition: all 0.8s ease-out; opacity:1; transform: translate(0,0) rotate(0deg);`;
+                    document.body.appendChild(p);
+                    requestAnimationFrame(() => {
+                        p.style.transform = `translate(${Math.random()*200-100}px, ${Math.random()*200-100}px) rotate(${Math.random()*720}deg)`;
+                        p.style.opacity = '0';
+                    });
+                    setTimeout(() => p.remove(), 800);
+                }
+            };
 
-        const main = document.querySelector('main');
-        main.addEventListener('scroll', () => {
-            const headerHeight = document.querySelector('header').offsetHeight + 20;
-            const scrollPos = main.scrollTop + headerHeight;
-            const sections = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
-            let current = sections[0];
-            for (const id of sections) {
-                const sec = document.getElementById(id);
-                if (sec && sec.offsetTop <= scrollPos) {
-                    current = id;
+            if (claimBtn) claimBtn.addEventListener('click', claim);
+
+            function initApp() {
+                try {
+                    main.scrollTop = 0;
+                    setLang(currentLang);
+                    updateBalanceUI();
+                    loadActivities();
+                    updateClaimButton();
+                    loadDailyStreak();
+
+                    if (tg?.initDataUnsafe?.user) {
+                        const user = tg.initDataUnsafe.user;
+                        document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                        document.getElementById('profileId').textContent = user.id;
+                        document.getElementById('profileAvatar').textContent = user.first_name?.charAt(0).toUpperCase() || '👤';
+                    }
+
+                    setInterval(updateClaimButton, 10000);
+                } catch (e) {
+                    console.error('Init error:', e);
+                } finally {
+                    hideSplash();
                 }
             }
-            navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
-        }, { passive: true });
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.Telegram?.WebApp) {
-                initApp();
-            } else {
-                alert('Запустите приложение в Telegram Mini App');
-            }
-        });
+            window.addEventListener('DOMContentLoaded', initApp);
+        } catch (e) {
+            console.error('Global script error:', e);
+            hideSplash();
+        }
     })();
 </script>
 </body>
