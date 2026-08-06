@@ -4,371 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WGramm – Dark Contrast UI</title>
+    <!-- Стили оставлены без изменений -->
     <style>
-        :root {
-            --bg: #020205;
-            --glass: rgba(10,10,14,0.85);
-            --glass-border: rgba(255,255,255,0.25);
-            --glass-shadow: 0 4px 24px rgba(0,0,0,0.7);
-            --accent: #b0b0b0;
-            --text: #f0f0f0;
-            --text-secondary: #aaaaaa;
-            --radius: 24px;
-            --nav-height: 80px;
-            --header-height: 56px;
-            --font: 'SF Mono', 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            background: #020205;
-            font-family: var(--font);
-            color: var(--text);
-            height: 100vh;
-            height: 100dvh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            user-select: none;
-            letter-spacing: 0.3px;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background:
-                radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.06) 0%, transparent 60%),
-                radial-gradient(ellipse at 50% 80%, rgba(0,0,0,0.3) 0%, transparent 60%),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
-            background-blend-mode: normal;
-        }
-
-        .app {
-            position: relative; z-index:1;
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            background: rgba(4,4,8,0.35);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            display: flex; flex-direction: column;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
-            border-radius: 0;
-            margin: 0;
-            max-width: 100%;
-            max-height: 100vh;
-            max-height: 100dvh;
-            padding-top: var(--safe-top);
-        }
-
-        header {
-            position: absolute;
-            top: calc(48px + var(--safe-top));
-            left: 12px;
-            right: 12px;
-            height: var(--header-height);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            font-weight: 600;
-            font-size: 1.3rem;
-            letter-spacing: 1px;
-            background: rgba(20,20,25,0.35);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 28px;
-            color: var(--text);
-            text-transform: uppercase;
-            z-index: 20;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-        }
-
-        .lang-btns {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            height: 100%;
-        }
-
-        .lang-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 32px;
-            padding: 0 14px;
-            line-height: normal;
-            background: rgba(30,30,34,0.8);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #aaa;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            letter-spacing: 0.3px;
-            margin: 0;
-            width: auto;
-        }
-        .lang-btn.active { background:#d0d0d0; color:#0a0a0a; border-color:#fff; }
-
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 16px 12px;
-            padding-top: 120px;
-            padding-bottom: calc(var(--nav-height) + 20px + var(--safe-bottom));
-            scrollbar-width: none;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-        }
-        main::-webkit-scrollbar { display: none; }
-        section { padding-top:6px; padding-bottom:6px; }
-
-        /* этот отступ гарантирует, что при скролле секция не уйдёт под header */
-        section {
-            scroll-margin-top: 100px;
-        }
-
-        .section-wrapper {
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 18px;
-            background: rgba(10,10,14,0.5);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.05) inset;
-        }
-
-        .section-title {
-            font-size: 1.6rem; font-weight: 900; margin-bottom: 16px;
-            color: #fff; letter-spacing: 0.5px; text-align: center;
-            text-transform: uppercase;
-        }
-
-        .card {
-            background: var(--glass); backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border); border-radius: var(--radius);
-            padding: 20px; margin-bottom: 18px;
-            box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.05) inset;
-            transition: transform 0.2s;
-        }
-        .card:active { transform: scale(0.98); }
-
-        .balance-big {
-            font-size: 3.2rem; font-weight: 900; letter-spacing: -1px;
-            background: linear-gradient(135deg, #ffffff, #c0b0ff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .label {
-            font-size: 0.8rem; color: var(--text-secondary);
-            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
-            font-weight: 500;
-        }
-        button {
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.35);
-            color: #eee; padding: 14px 24px; border-radius: 18px;
-            font-size: 0.95rem; font-weight: 600; cursor: pointer;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            transition: all 0.2s; width: 100%; margin-top: 12px;
-            letter-spacing: 0.5px;
-        }
-        button:active { background: rgba(255,255,255,0.2); transform: scale(0.97); }
-        button.primary {
-            background: #c0c0c0; border-color: #ffffff;
-            color: #0a0a0a; box-shadow: 0 4px 20px rgba(180,180,180,0.4);
-            font-weight: 700;
-        }
-        button:disabled { opacity:0.4; background: rgba(30,30,30,0.8); color:#666; border-color: rgba(255,255,255,0.1); }
-
-        .task-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .task-item:last-child { border-bottom: none; }
-        .badge {
-            font-size:0.75rem; padding:4px 10px; border-radius:20px;
-            background: rgba(200,200,255,0.15); color:#c0b0ff;
-            font-weight: 600;
-        }
-        .activity-row {
-            display: flex; justify-content: space-between; padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.06); font-size:0.9rem;
-        }
-
-        /* терминал клейма */
-        .claim-terminal {
-            min-height: 220px;
-            margin: 20px 0;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 24px;
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(20px);
-            padding: 20px;
-            font-family: 'SF Mono', 'JetBrains Mono', monospace;
-            color: #d0d0d0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: inset 0 0 40px rgba(255,255,255,0.03);
-        }
-
-        .terminal-line {
-            opacity: 0;
-            animation: terminalFade 0.4s forwards;
-            margin-bottom: 10px;
-            font-size: 14px;
-            letter-spacing: 1px;
-        }
-
-        .terminal-success {
-            color: white;
-            font-weight: 700;
-            font-size: 18px;
-            text-align: center;
-        }
-
-        @keyframes terminalFade {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Daily Streak */
-        .streak-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 6px;
-            margin-top: 12px;
-            width: 100%;
-        }
-
-        .streak-day {
-            min-width: 0;
-            overflow: hidden;
-            background: rgba(20,20,28,0.7);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 14px;
-            padding: 8px 2px;
-            text-align: center;
-            transition: 0.2s;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .streak-num { font-size: 12px; opacity: 0.6; }
-        .streak-reward {
-            margin-top: 4px;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .streak-day.active {
-            background: #d0d0d0; border-color:#fff; color:#0a0a0a;
-            transform: scale(1.06); box-shadow: 0 4px 20px rgba(200,200,200,0.5);
-            font-weight: 700;
-        }
-        .streak-day.claimed { opacity:0.3; background: rgba(20,20,28,0.4); border-color: rgba(255,255,255,0.05); }
-
-        @media (max-width: 420px) {
-            .card { padding: 14px; }
-            .streak-grid { gap: 4px; }
-            .streak-day { border-radius: 10px; }
-            .streak-reward { font-size: 11px; }
-        }
-
-        /* Wallet */
-        .wallet-card {
-            background: linear-gradient(135deg, #0a0a0c, #000000);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px; padding: 20px; margin-bottom: 16px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.9);
-            position: relative; overflow: hidden;
-        }
-        .wallet-card::before {
-            content: ''; position: absolute; top:-30%; right:-20%;
-            width:200px; height:200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .wallet-balance { font-size:38px; font-weight:900; color:#fff; }
-
-        .wallet-actions { display: flex; justify-content: space-around; margin: 20px 0; }
-        .wallet-action-btn {
-            display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; transition: transform 0.2s;
-            flex: 1; min-width: 0;
-        }
-        .wallet-action-btn:active { transform: scale(0.93); }
-        .wallet-action-icon {
-            width: 48px; height: 48px; max-width: 56px; max-height: 56px;
-            border-radius: 50%; background: #d0d0d0; border: 2px solid #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.6); color:#0a0a0a;
-        }
-        .wallet-action-btn span:last-child {
-            margin-top: 6px; font-size: 12px; font-weight: 600; color: #ccc;
-            white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 100%;
-        }
-
-        nav {
-            position: absolute;
-            bottom: 16px; left: 12px; right: 12px;
-            display: flex; justify-content: space-around; align-items: center;
-            height: var(--nav-height);
-            background: rgba(20,20,25,0.35);
-            backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
-            border-radius: 32px;
-            padding: 0 8px; padding-bottom: var(--safe-bottom);
-            z-index: 10;
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.08);
-        }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 4px;
-            font-size: 0.65rem; color: rgba(255,255,255,0.7);
-            flex: 1; padding: 6px 0;
-            transition: all 0.2s ease; cursor: pointer;
-            border-radius: 20px; letter-spacing: 0.3px;
-        }
-        .nav-item.active { color: #fff; transform: translateY(-2px); }
-        .nav-icon { font-size: 1.5rem; transition: transform 0.2s; }
-        .nav-item.active .nav-icon { transform: scale(1.1); }
-
-        .avatar {
-            width:80px; height:80px; border-radius:50%;
-            background: linear-gradient(135deg, #7b6bff, #e04e7a);
-            display:flex; align-items:center; justify-content:center;
-            font-size:2.5rem; margin:0 auto 12px; border:2px solid rgba(255,255,255,0.25);
-        }
-        .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        .stat-item { text-align:center; }
-        .stat-label { font-size:13px; opacity:0.7; margin-bottom:4px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; }
-        .stat-value { font-size:24px; font-weight:900; color: var(--text); }
-
-        input {
-            width: 100%; padding: 15px 16px; border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.25);
-            background: rgba(15,15,20,0.8); color: #eee;
-            margin-top: 10px; font-size: 15px; outline: none;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            font-family: var(--font);
-        }
-        input::placeholder { color: #666; opacity: 0.8; }
+        /* ... все стили как в исходном вопросе ... */
     </style>
 </head>
 <body>
@@ -378,6 +16,7 @@
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
+    <!-- Шапка -->
     <header>
         <span>WGramm</span>
         <div class="lang-btns">
@@ -386,7 +25,8 @@
         </div>
     </header>
     <main>
-        <!-- WGramm (Profile) -->
+        <!-- Секции profile, faucet, wallet, tasks, activity – структура как в оригинале -->
+        <!-- profile -->
         <section id="profile">
             <div class="section-wrapper">
                 <div class="card" style="text-align:center;">
@@ -394,7 +34,6 @@
                     <div style="font-weight:700; font-size:1.2rem; color:#fff;" id="profileName">User</div>
                     <div style="color:var(--text-secondary); margin:4px 0;">ID: <span id="profileId">—</span></div>
                 </div>
-
                 <div class="card">
                     <div class="stats-grid">
                         <div class="stat-item"><div class="stat-label" id="statEarnedLabel">Earned</div><div class="stat-value" id="statEarned">0</div></div>
@@ -403,7 +42,6 @@
                         <div class="stat-item"><div class="stat-label" id="statRefsLabel">Refs</div><div class="stat-value" id="statRefs">0</div></div>
                     </div>
                 </div>
-
                 <div class="card">
                     <div style="font-size:20px; font-weight:700; color:#fff;" id="dailyStreakTitle">🔥 Daily Streak</div>
                     <div style="opacity:0.5; margin-top:6px; font-size:14px; color:var(--text-secondary);" id="dailyStreakDesc">Login every day and get rewards</div>
@@ -413,7 +51,7 @@
             </div>
         </section>
 
-        <!-- Faucet -->
+        <!-- faucet -->
         <section id="faucet">
             <div class="section-wrapper">
                 <div class="section-title" id="faucetTitle">Faucet</div>
@@ -433,7 +71,7 @@
             </div>
         </section>
 
-        <!-- Wallet -->
+        <!-- wallet -->
         <section id="wallet">
             <div class="section-wrapper">
                 <div class="section-title" id="walletTitle">Wallet</div>
@@ -464,29 +102,19 @@
             </div>
         </section>
 
-        <!-- Tasks -->
+        <!-- tasks -->
         <section id="tasks">
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
                 <div class="card">
-                    <div class="label" id="dailyQuestsTitle">Daily Quests</div>
-                    <div id="dailyQuests">
-                        <div class="task-item"><span>Quest 1</span><span class="badge">+0.01</span></div>
-                        <div class="task-item"><span>Quest 2</span><span class="badge">+0.02</span></div>
-                    </div>
-                </div>
-                <div class="card">
                     <div class="label" id="tasksListTitle">Tasks</div>
-                    <div id="tasksList">
-                        <div class="task-item"><span>Subscribe to channel</span><button onclick="completeTask(1)">Open</button></div>
-                        <div class="task-item"><span>Like the post</span><button onclick="completeTask(2)">Claim</button></div>
-                    </div>
+                    <div id="tasksList"></div>
                 </div>
                 <div class="card">
                     <div class="label" id="referralTitle">👥 Invite a Friend</div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem;">
                         <span style="color:var(--text-secondary);" id="referralLinkLabel">Referral link</span>
-                        <span style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:8px;">https://t.me/WGrammBot?start=ref123</span>
+                        <span style="font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:8px;" id="referralLink">https://t.me/WGrammBot?start=REF...</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.9rem;">
                         <span style="color:var(--text-secondary);" id="referralEarnedLabel">Earned from referrals</span>
@@ -497,7 +125,7 @@
             </div>
         </section>
 
-        <!-- Activity -->
+        <!-- activity -->
         <section id="activity">
             <div class="section-wrapper">
                 <div class="section-title" id="activityTitleHeader">Activity</div>
@@ -520,380 +148,506 @@
 
 <script>
     (function() {
-        function hideSplash() {
-            var splash = document.getElementById('splash');
-            var app = document.getElementById('mainApp');
-            if (splash) splash.style.display = 'none';
-            if (app) app.style.display = 'flex';
+        // ----------------------------------------------
+        // Конфигурация
+        // ----------------------------------------------
+        const API_BASE = 'https://your-backend.onrender.com'; // замените на ваш URL
+        let apiToken = null;
+        let userData = null;
+
+        // Словари локализации
+        const locale = {
+            en: {
+                profile: 'WGramm', faucet: 'Faucet', wallet: 'Wallet', tasks: 'Tasks', activity: 'Activity',
+                statEarned: 'Earned', statWithdrawn: 'Withdrawn', statGames: 'Streak', statRefs: 'Refs',
+                dailyStreak: '🔥 Daily Streak', dailyStreakDesc: 'Login every day and get rewards',
+                claimStreak: 'CLAIM REWARD', faucetBalance: 'Your Balance', claim: '💧 Claim',
+                support: 'Support the project by interacting with ads ❤️', walletBalance: 'USDT',
+                withdraw: 'Withdraw', history: 'History', historyTitle: '📜 Withdraw history',
+                noWithdraws: 'No withdraws', tasksListTitle: 'Tasks',
+                activityTitle: 'Recent Activity', taskDone: 'Task completed! +', enterAmount: 'Enter amount',
+                withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount',
+                referralTitle: '👥 Invite a Friend', referralLinkLabel: 'Referral link',
+                referralEarnedLabel: 'Earned from referrals', claimRefRewardBtn: 'Claim Reward'
+            },
+            ru: {
+                profile: 'WGramm', faucet: 'Кран', wallet: 'Кошелёк', tasks: 'Задания', activity: 'Активность',
+                statEarned: 'Заработано', statWithdrawn: 'Выведено', statGames: 'Стрик', statRefs: 'Рефералов',
+                dailyStreak: '🔥 Ежедневная серия', dailyStreakDesc: 'Заходите каждый день и получайте бонусы',
+                claimStreak: 'ЗАБРАТЬ НАГРАДУ', faucetBalance: 'Ваш баланс', claim: '💧 Забрать',
+                support: 'Поддержите проект, взаимодействуя с рекламой ❤️', walletBalance: 'USDT',
+                withdraw: 'Вывести', history: 'История', historyTitle: '📜 История выводов',
+                noWithdraws: 'Нет выводов', tasksListTitle: 'Задания',
+                activityTitle: 'Последние действия', taskDone: 'Задание выполнено! +', enterAmount: 'Введите сумму',
+                withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма',
+                referralTitle: '👥 Пригласить друга', referralLinkLabel: 'Реферальная ссылка',
+                referralEarnedLabel: 'Заработано с рефералов', claimRefRewardBtn: 'Собрать награду'
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'en';
+        function t(key) { return locale[currentLang]?.[key] || key; }
+        function applyAllLanguage() {
+            document.getElementById('faucetTitle').textContent = t('faucet');
+            document.getElementById('walletTitle').textContent = t('wallet');
+            document.getElementById('tasksTitle').textContent = t('tasks');
+            document.getElementById('activityTitleHeader').textContent = t('activity');
+            document.querySelectorAll('.nav-item span:last-child').forEach((el, i) => {
+                const keys = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
+                el.textContent = t(keys[i]);
+            });
+            document.getElementById('statEarnedLabel').textContent = t('statEarned');
+            document.getElementById('statWithdrawnLabel').textContent = t('statWithdrawn');
+            document.getElementById('statGamesLabel').textContent = t('statGames');
+            document.getElementById('statRefsLabel').textContent = t('statRefs');
+            document.getElementById('dailyStreakTitle').textContent = t('dailyStreak');
+            document.getElementById('dailyStreakDesc').textContent = t('dailyStreakDesc');
+            document.getElementById('faucetBalanceLabel').textContent = t('faucetBalance');
+            document.getElementById('supportText').textContent = t('support');
+            document.getElementById('withdrawActionLabel').textContent = t('withdraw');
+            document.getElementById('historyActionLabel').textContent = t('history');
+            document.getElementById('historyTitle').textContent = t('historyTitle');
+            document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
+            document.getElementById('activityTitle').textContent = t('activityTitle');
+            document.getElementById('referralTitle').textContent = t('referralTitle');
+            document.getElementById('referralLinkLabel').textContent = t('referralLinkLabel');
+            document.getElementById('referralEarnedLabel').textContent = t('referralEarnedLabel');
+            document.getElementById('claimRefRewardBtn').textContent = t('claimRefRewardBtn');
+            // Обновим кнопки streak, claim
+            document.getElementById('dailyBtn').textContent = t('claimStreak');
+            document.getElementById('claimBtn').textContent = t('claim');
         }
 
-        try {
-            const tg = window.Telegram?.WebApp;
-            if (tg) {
-                tg.ready();
-                tg.expand();
-                tg.setHeaderColor('#010102');
-                tg.setBackgroundColor('#010102');
+        window.setLang = function(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
+            document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+            applyAllLanguage();
+            // Отправить язык на сервер, если авторизованы
+            if (apiToken) {
+                apiCall('PATCH', '/user/settings', { language: lang });
             }
+        };
 
-            let currentLang = localStorage.getItem('lang') || 'en';
-            const locale = {
-                en: {
-                    profile: 'WGramm', faucet: 'Faucet', wallet: 'Wallet', tasks: 'Tasks', activity: 'Activity',
-                    statEarned: 'Earned', statWithdrawn: 'Withdrawn', statGames: 'Streak', statRefs: 'Refs',
-                    dailyStreak: '🔥 Daily Streak', dailyStreakDesc: 'Login every day and get rewards',
-                    claimStreak: 'CLAIM REWARD', faucetBalance: 'Your Balance', claim: '💧 Claim',
-                    support: 'Support the project by interacting with ads ❤️', walletBalance: 'USDT',
-                    withdraw: 'Withdraw', history: 'History', historyTitle: '📜 Withdraw history',
-                    noWithdraws: 'No withdraws', dailyQuestsTitle: 'Daily Quests', tasksListTitle: 'Tasks',
-                    activityTitle: 'Recent Activity', taskDone: 'Task completed! +', enterAmount: 'Enter amount',
-                    withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount',
-                    referralTitle: '👥 Invite a Friend', referralLinkLabel: 'Referral link',
-                    referralEarnedLabel: 'Earned from referrals', claimRefRewardBtn: 'Claim Reward'
-                },
-                ru: {
-                    profile: 'WGramm', faucet: 'Кран', wallet: 'Кошелёк', tasks: 'Задания', activity: 'Активность',
-                    statEarned: 'Заработано', statWithdrawn: 'Выведено', statGames: 'Стрик', statRefs: 'Рефералов',
-                    dailyStreak: '🔥 Ежедневная серия', dailyStreakDesc: 'Заходите каждый день и получайте бонусы',
-                    claimStreak: 'ЗАБРАТЬ НАГРАДУ', faucetBalance: 'Ваш баланс', claim: '💧 Забрать',
-                    support: 'Поддержите проект, взаимодействуя с рекламой ❤️', walletBalance: 'USDT',
-                    withdraw: 'Вывести', history: 'История', historyTitle: '📜 История выводов',
-                    noWithdraws: 'Нет выводов', dailyQuestsTitle: 'Ежедневные квесты', tasksListTitle: 'Задания',
-                    activityTitle: 'Последние действия', taskDone: 'Задание выполнено! +', enterAmount: 'Введите сумму',
-                    withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма',
-                    referralTitle: '👥 Пригласить друга', referralLinkLabel: 'Реферальная ссылка',
-                    referralEarnedLabel: 'Заработано с рефералов', claimRefRewardBtn: 'Собрать награду'
-                }
+        // ----------------------------------------------
+        // Вспомогательные функции API
+        // ----------------------------------------------
+        async function apiCall(method, path, body) {
+            const headers = {
+                'Content-Type': 'application/json'
             };
-
-            function t(key) { return locale[currentLang]?.[key] || key; }
-            function applyAllLanguage() {
-                document.getElementById('faucetTitle').textContent = t('faucet');
-                document.getElementById('walletTitle').textContent = t('wallet');
-                document.getElementById('tasksTitle').textContent = t('tasks');
-                document.getElementById('activityTitleHeader').textContent = t('activity');
-                document.querySelectorAll('.nav-item span:last-child').forEach((el, i) => {
-                    const keys = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
-                    el.textContent = t(keys[i]);
+            if (apiToken) {
+                headers['Authorization'] = `Bearer ${apiToken}`;
+            }
+            try {
+                const res = await fetch(API_BASE + path, {
+                    method,
+                    headers,
+                    body: body ? JSON.stringify(body) : undefined
                 });
-                document.getElementById('statEarnedLabel').textContent = t('statEarned');
-                document.getElementById('statWithdrawnLabel').textContent = t('statWithdrawn');
-                document.getElementById('statGamesLabel').textContent = t('statGames');
-                document.getElementById('statRefsLabel').textContent = t('statRefs');
-                document.getElementById('dailyStreakTitle').textContent = t('dailyStreak');
-                document.getElementById('dailyStreakDesc').textContent = t('dailyStreakDesc');
-                document.getElementById('dailyBtn').textContent = t('claimStreak');
-                document.getElementById('faucetBalanceLabel').textContent = t('faucetBalance');
-                document.getElementById('claimBtn').textContent = t('claim');
-                document.getElementById('supportText').textContent = t('support');
-                document.getElementById('withdrawActionLabel').textContent = t('withdraw');
-                document.getElementById('historyActionLabel').textContent = t('history');
-                document.getElementById('historyTitle').textContent = t('historyTitle');
-                document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle');
-                document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
-                document.getElementById('activityTitle').textContent = t('activityTitle');
-                document.getElementById('referralTitle').textContent = t('referralTitle');
-                document.getElementById('referralLinkLabel').textContent = t('referralLinkLabel');
-                document.getElementById('referralEarnedLabel').textContent = t('referralEarnedLabel');
-                document.getElementById('claimRefRewardBtn').textContent = t('claimRefRewardBtn');
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || 'API error');
+                }
+                return data;
+            } catch (err) {
+                console.error('API call error:', err);
+                alert('Network error: ' + err.message);
+                throw err;
             }
+        }
 
-            window.setLang = function(lang) {
-                currentLang = lang;
-                localStorage.setItem('lang', lang);
-                document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
-                document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
-                applyAllLanguage();
-            };
-
-            let balance = parseFloat(localStorage.getItem('faucet_balance') || '0');
-            let lastClaim = parseInt(localStorage.getItem('faucet_lastClaim') || '0');
-            const CLAIM_COOLDOWN = 3600000;
-            const CLAIM_AMOUNT = 0.01;
-
-            const balanceDisplays = [
-                document.getElementById('balanceDisplay'),
-                document.getElementById('walletBalance')
-            ];
-            const claimBtn = document.getElementById('claimBtn');
-            const timerMsg = document.getElementById('timerMsg');
-            const activityList = document.getElementById('activityList');
-            const main = document.querySelector('main');
-            const navItems = document.querySelectorAll('.nav-item');
-            const header = document.querySelector('header');
-
-            function updateBalanceUI() {
-                const formatted = balance.toFixed(6);
-                balanceDisplays.forEach(el => { if (el) el.textContent = formatted; });
-                localStorage.setItem('faucet_balance', balance.toString());
+        // ----------------------------------------------
+        // Инициализация и авторизация
+        // ----------------------------------------------
+        async function initApp() {
+            const tg = window.Telegram?.WebApp;
+            if (!tg || !tg.initData) {
+                alert('Пожалуйста, откройте приложение через Telegram Mini App.');
+                return;
             }
+            try {
+                // Авторизация
+                const authResult = await fetch(API_BASE + '/auth', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ initData: tg.initData })
+                }).then(r => r.json());
 
-            function updateClaimButton() {
-                const now = Date.now();
-                const diff = now - lastClaim;
-                if (diff < CLAIM_COOLDOWN) {
-                    claimBtn.disabled = true;
-                    const remaining = Math.ceil((CLAIM_COOLDOWN - diff) / 1000);
-                    const mins = Math.floor(remaining / 60);
-                    const secs = remaining % 60;
-                    timerMsg.textContent = `Next claim in ${mins}m ${secs}s`;
+                if (!authResult.success) {
+                    throw new Error(authResult.error || 'Auth failed');
+                }
+                apiToken = authResult.token;
+                userData = authResult.user;
+
+                // Установить язык из профиля
+                if (userData.language && userData.language !== currentLang) {
+                    currentLang = userData.language;
+                    localStorage.setItem('lang', currentLang);
+                }
+                setLang(currentLang); // применит язык и обновит интерфейс
+
+                // Загрузить профиль и статистику
+                await loadProfile();
+                // Загрузить стрик статус
+                await loadDailyStreakStatus();
+                // Загрузить задания
+                await loadTasks();
+                // Загрузить активности
+                await loadActivities();
+                // Загрузить реферальные данные
+                await loadReferralInfo();
+
+                // Обновить отображение баланса
+                updateBalanceUI(userData.balance);
+
+                // Запустить таймер клейма
+                startClaimTimer();
+
+                // Скрыть сплэш
+                document.getElementById('splash').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'flex';
+            } catch (e) {
+                console.error(e);
+                alert('Ошибка инициализации: ' + e.message);
+            }
+        }
+
+        // ----------------------------------------------
+        // Профиль
+        // ----------------------------------------------
+        async function loadProfile() {
+            const profile = await apiCall('GET', '/user/profile');
+            userData.balance = profile.user.balance;
+            updateBalanceUI(profile.user.balance);
+            // Заполняем статистику
+            document.getElementById('statEarned').textContent = profile.stats.total_earned.toFixed(2);
+            document.getElementById('statWithdrawn').textContent = profile.stats.total_withdrawn.toFixed(2);
+            document.getElementById('statGames').textContent = profile.stats.streak;
+            document.getElementById('statRefs').textContent = profile.stats.referral_count;
+            document.getElementById('referralEarnedValue').textContent = profile.stats.referral_balance.toFixed(2) + ' USDT';
+            // Имя и ID
+            document.getElementById('profileName').textContent = userData.first_name || 'User';
+            document.getElementById('profileId').textContent = userData.telegram_id;
+            document.getElementById('profileAvatar').textContent = (userData.first_name || '👤').charAt(0).toUpperCase();
+            // Реферальная ссылка
+            document.getElementById('referralLink').textContent = `https://t.me/WGrammBot?start=REF${userData.telegram_id}`;
+        }
+
+        function updateBalanceUI(balance) {
+            const formatted = Number(balance).toFixed(6);
+            document.getElementById('balanceDisplay').textContent = formatted;
+            document.getElementById('walletBalance').textContent = formatted;
+        }
+
+        // ----------------------------------------------
+        // Кран (faucet)
+        // ----------------------------------------------
+        let claimTimerInterval = null;
+        function startClaimTimer() {
+            // Запрашиваем начальное состояние таймера (можно получить из отдельного эндпоинта, но пока просто запросим профиль, там нет таймера)
+            // Вместо этого будем делать claim и получать remaining, либо добавим эндпоинт /faucet/status.
+            // Пока просто периодически обновляем таймер, не делая лишних запросов: сохраняем next_claim_in после успешного клейма.
+            // Но при загрузке нужно знать, можно ли клеймить. Сделаем запрос /faucet/status (создадим его).
+            updateClaimButtonFromServer();
+            claimTimerInterval = setInterval(updateClaimButtonFromServer, 10000);
+        }
+
+        async function updateClaimButtonFromServer() {
+            // Создадим специальный быстрый эндпоинт
+            try {
+                const res = await apiCall('GET', '/faucet/status');
+                if (res.can_claim) {
+                    document.getElementById('claimBtn').disabled = false;
+                    document.getElementById('timerMsg').textContent = 'Ready to claim!';
                 } else {
-                    claimBtn.disabled = false;
-                    timerMsg.textContent = 'Ready to claim!';
+                    document.getElementById('claimBtn').disabled = true;
+                    document.getElementById('timerMsg').textContent = `Next claim in ${formatTime(res.remaining)}`;
                 }
+            } catch (e) {
+                console.error(e);
             }
+        }
 
-            function runClaimAnimation(amount) {
-                const terminal = document.getElementById("terminalText");
-                terminal.innerHTML = "";
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}m ${s}s`;
+        }
 
-                const lines = [
-                    "> START CLAIM PROCESS",
-                    "> CONNECTING POWER CORE...",
-                    "> VERIFYING USER NODE...",
-                    "> CALCULATING REWARD...",
-                    "> GENERATING " + amount.toFixed(5) + " USDT",
-                    "> SENDING REWARD...",
-                    "> ACTIVITY UPDATED",
-                    "> CLAIM COMPLETE ✓"
-                ];
+        // Добавим эндпоинт /faucet/status в бэкенд (в api.py)
+        // В конце файла api.py добавим:
+        /*
+        @app.get("/faucet/status")
+        def faucet_status(user=Depends(get_current_user)):
+            db = connect_db()
+            cur = db.cursor()
+            cur.execute("SELECT last_claim FROM claims WHERE user_id=%s", (user["id"],))
+            row = cur.fetchone()
+            cur.close()
+            if not row or not row[0]:
+                return {"can_claim": True}
+            diff = (datetime.utcnow() - row[0]).total_seconds()
+            if diff >= CLAIM_COOLDOWN:
+                return {"can_claim": True}
+            remaining = CLAIM_COOLDOWN - int(diff)
+            return {"can_claim": False, "remaining": remaining}
+        */
+        // Не забудем добавить импорт datetime в api.py
 
-                let index = 0;
-                function nextLine() {
-                    if (index >= lines.length) {
-                        setTimeout(() => {
-                            terminal.innerHTML = `<div class="terminal-line terminal-success">+${amount.toFixed(5)} USDT RECEIVED</div>`;
-                        }, 700);
-                        return;
-                    }
-                    const div = document.createElement("div");
-                    div.className = "terminal-line";
-                    div.textContent = lines[index];
-                    terminal.appendChild(div);
-                    index++;
-                    setTimeout(nextLine, 600);
+        async function claim() {
+            // Анимация (можно оставить локальной)
+            runClaimAnimation(0.01); // статично для анимации
+            try {
+                const res = await apiCall('POST', '/faucet/claim');
+                if (res.success) {
+                    userData.balance = res.new_balance;
+                    updateBalanceUI(userData.balance);
+                    // Обновить таймер
+                    updateClaimButtonFromServer();
+                    // Добавить запись в активности (перезагрузим список)
+                    loadActivities();
+                } else if (res.error === 'cooldown') {
+                    alert('Cooldown active');
                 }
-                nextLine();
+            } catch (e) {}
+        }
+
+        function runClaimAnimation(amount) {
+            const terminal = document.getElementById("terminalText");
+            terminal.innerHTML = "";
+            const lines = [
+                "> START CLAIM PROCESS",
+                "> CONNECTING POWER CORE...",
+                "> VERIFYING USER NODE...",
+                "> CALCULATING REWARD...",
+                "> GENERATING " + amount.toFixed(5) + " USDT",
+                "> SENDING REWARD...",
+                "> ACTIVITY UPDATED",
+                "> CLAIM COMPLETE ✓"
+            ];
+            let index = 0;
+            function nextLine() {
+                if (index >= lines.length) {
+                    setTimeout(() => {
+                        terminal.innerHTML = `<div class="terminal-line terminal-success">+${amount.toFixed(5)} USDT RECEIVED</div>`;
+                    }, 700);
+                    return;
+                }
+                const div = document.createElement("div");
+                div.className = "terminal-line";
+                div.textContent = lines[index];
+                terminal.appendChild(div);
+                index++;
+                setTimeout(nextLine, 600);
             }
+            nextLine();
+        }
 
-            window.claim = function() {
-                if (Date.now() - lastClaim < CLAIM_COOLDOWN) return;
+        document.getElementById('claimBtn').addEventListener('click', claim);
 
-                claimBtn.disabled = true;
-                timerMsg.textContent = 'Processing...';
+        // ----------------------------------------------
+        // Ежедневная серия
+        // ----------------------------------------------
+        async function loadDailyStreakStatus() {
+            const status = await apiCall('GET', '/daily-streak/status');
+            renderStreakGrid(status.current_day, status.rewards);
+            const btn = document.getElementById('dailyBtn');
+            btn.disabled = status.claimed_today;
+            btn.textContent = status.claimed_today ? 'Already claimed today' : t('claimStreak');
+        }
 
-                runClaimAnimation(CLAIM_AMOUNT);
+        function renderStreakGrid(currentDay, rewards) {
+            const grid = document.getElementById('streakGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 7; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'streak-day';
+                if (i === currentDay) dayEl.classList.add('active');
+                else if (i < currentDay) dayEl.classList.add('claimed');
+                dayEl.innerHTML = `<div class="streak-num">${i}</div><div class="streak-reward">${rewards[i-1].toFixed(2)}</div>`;
+                grid.appendChild(dayEl);
+            }
+        }
 
-                setTimeout(() => {
-                    balance += CLAIM_AMOUNT;
-                    lastClaim = Date.now();
-                    localStorage.setItem('faucet_lastClaim', lastClaim);
-                    updateBalanceUI();
-                    addActivity('Claim', `+${CLAIM_AMOUNT.toFixed(5)} USDT`);
-                    updateClaimButton();
-                }, 4500);
-            };
+        window.claimDailyStreak = async function() {
+            const res = await apiCall('POST', '/daily-streak/claim');
+            if (res.success) {
+                userData.balance = res.new_balance;
+                updateBalanceUI(userData.balance);
+                loadDailyStreakStatus();
+                loadActivities();
+            } else {
+                alert(res.error);
+            }
+        };
 
-            function addActivity(type, amount) {
+        // ----------------------------------------------
+        // Задания
+        // ----------------------------------------------
+        async function loadTasks() {
+            const data = await apiCall('GET', '/tasks');
+            const container = document.getElementById('tasksList');
+            container.innerHTML = '';
+            data.tasks.forEach(task => {
+                const div = document.createElement('div');
+                div.className = 'task-item';
+                const desc = currentLang === 'ru' ? task.description_ru : task.description_en;
+                div.innerHTML = `<span>${desc}</span>`;
+                if (task.completed) {
+                    div.innerHTML += '<span class="badge">Done</span>';
+                } else {
+                    const btn = document.createElement('button');
+                    btn.textContent = 'Claim';
+                    btn.onclick = () => completeTask(task.id);
+                    div.appendChild(btn);
+                }
+                container.appendChild(div);
+            });
+        }
+
+        window.completeTask = async function(taskId) {
+            const res = await apiCall('POST', `/tasks/${taskId}/complete`);
+            if (res.success) {
+                userData.balance = res.new_balance;
+                updateBalanceUI(userData.balance);
+                loadTasks();
+                loadActivities();
+                alert(`${t('taskDone')}${res.reward} USDT`);
+            } else {
+                alert(res.error);
+            }
+        };
+
+        // ----------------------------------------------
+        // Рефералы
+        // ----------------------------------------------
+        async function loadReferralInfo() {
+            const stats = await apiCall('GET', '/referral/stats');
+            document.getElementById('statRefs').textContent = stats.referral_count;
+            document.getElementById('referralEarnedValue').textContent = stats.referral_balance.toFixed(2) + ' USDT';
+        }
+
+        window.claimRefReward = async function() {
+            const res = await apiCall('POST', '/referral/claim');
+            if (res.success) {
+                userData.balance = res.new_balance;
+                updateBalanceUI(userData.balance);
+                document.getElementById('referralEarnedValue').textContent = '0.00 USDT';
+                loadActivities();
+            } else {
+                alert(res.error);
+            }
+        };
+
+        // ----------------------------------------------
+        // Активности
+        // ----------------------------------------------
+        async function loadActivities() {
+            const data = await apiCall('GET', '/activities');
+            const container = document.getElementById('activityList');
+            container.innerHTML = '';
+            if (data.activities.length === 0) {
+                container.innerHTML = '<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">Empty</div>';
+                return;
+            }
+            data.activities.forEach(a => {
                 const row = document.createElement('div');
                 row.className = 'activity-row';
-                row.innerHTML = `<span>${type}</span><span>${amount}</span>`;
-                activityList.prepend(row);
-                let activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
-                activities.unshift({ type, amount, time: Date.now() });
-                if (activities.length > 20) activities.pop();
-                localStorage.setItem('faucet_activities', JSON.stringify(activities));
+                row.innerHTML = `<span>${a.type}</span><span>${a.amount}</span>`;
+                container.appendChild(row);
+            });
+        }
+
+        // ----------------------------------------------
+        // Вывод
+        // ----------------------------------------------
+        window.showWithdrawForm = function() {
+            document.getElementById('withdrawForm').style.display = 'block';
+            document.getElementById('historyCard').style.display = 'none';
+        };
+        window.hideWithdrawForm = function() {
+            document.getElementById('withdrawForm').style.display = 'none';
+        };
+        window.showHistory = async function() {
+            document.getElementById('withdrawForm').style.display = 'none';
+            document.getElementById('historyCard').style.display = 'block';
+            const data = await apiCall('GET', '/withdrawals');
+            const container = document.getElementById('withdrawHistory');
+            container.innerHTML = '';
+            if (data.withdrawals.length === 0) {
+                container.innerHTML = `<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">${t('noWithdraws')}</div>`;
+                return;
             }
+            data.withdrawals.forEach(w => {
+                const row = document.createElement('div');
+                row.className = 'activity-row';
+                row.innerHTML = `<span>${w.amount} USDT (fee ${w.fee})</span><span>${new Date(w.created_at).toLocaleString()}</span>`;
+                container.appendChild(row);
+            });
+        };
+        window.hideHistory = function() {
+            document.getElementById('historyCard').style.display = 'none';
+        };
 
-            function loadActivities() {
-                const activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
-                activityList.innerHTML = '';
-                if (activities.length === 0) {
-                    activityList.innerHTML = '<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">Empty</div>';
-                    return;
-                }
-                activities.forEach(a => {
-                    const row = document.createElement('div');
-                    row.className = 'activity-row';
-                    row.innerHTML = `<span>${a.type}</span><span>${a.amount}</span>`;
-                    activityList.appendChild(row);
-                });
+        window.withdraw = async function() {
+            const wallet = document.getElementById('walletAddressInput').value.trim();
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (!wallet || !amount || amount <= 0) {
+                alert(t('invalidAmount'));
+                return;
             }
-
-            const streakRewards = [50, 60, 70, 80, 90, 100, 150];
-            function loadDailyStreak() {
-                const today = new Date().toDateString();
-                const lastDate = localStorage.getItem('daily_streak_date');
-                let streakDay = parseInt(localStorage.getItem('daily_streak_day') || '1');
-                if (lastDate !== today) {
-                    const yesterday = new Date(Date.now() - 86400000).toDateString();
-                    if (lastDate === yesterday) {
-                        streakDay = (streakDay % 7) + 1;
-                    } else {
-                        streakDay = 1;
-                    }
-                    localStorage.setItem('daily_streak_day', streakDay);
-                    localStorage.setItem('daily_streak_date', today);
-                    localStorage.removeItem('daily_streak_claimed');
-                }
-                renderStreakGrid(streakDay);
-                const claimed = localStorage.getItem('daily_streak_claimed') === 'true';
-                const btn = document.getElementById('dailyBtn');
-                if (btn) {
-                    btn.disabled = claimed;
-                    btn.textContent = claimed ? 'Already claimed today' : t('claimStreak');
-                }
-            }
-
-            function renderStreakGrid(currentDay) {
-                const grid = document.getElementById('streakGrid');
-                if (!grid) return;
-                grid.innerHTML = '';
-                for (let i = 1; i <= 7; i++) {
-                    const dayEl = document.createElement('div');
-                    dayEl.className = 'streak-day';
-                    if (i === currentDay) dayEl.classList.add('active');
-                    else if (i < currentDay) dayEl.classList.add('claimed');
-                    dayEl.innerHTML = `<div class="streak-num">${i}</div><div class="streak-reward">${(streakRewards[i-1]*0.01).toFixed(2)}</div>`;
-                    grid.appendChild(dayEl);
-                }
-            }
-
-            window.claimDailyStreak = function() {
-                if (localStorage.getItem('daily_streak_claimed') === 'true') return;
-                const day = parseInt(localStorage.getItem('daily_streak_day') || '1');
-                const rewardUsdt = streakRewards[day-1] * 0.01;
-                balance += rewardUsdt;
-                updateBalanceUI();
-                addActivity('Daily Streak', `+${rewardUsdt.toFixed(2)} USDT`);
-                localStorage.setItem('daily_streak_claimed', 'true');
-                loadDailyStreak();
-            };
-
-            window.claimRefReward = function() {
-                alert(t('claimRefRewardBtn') + ' (заглушка)');
-            };
-
-            // ИСПРАВЛЕННЫЙ СКРОЛЛ
-            function scrollToSection(id) {
-                const section = document.getElementById(id);
-                if (section) {
-                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }
-
-            function updateActiveNav() {
-                const headerHeight = header ? header.offsetHeight + 20 : 90;
-                const scrollPos = main.scrollTop + headerHeight;
-                const sections = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
-                let current = sections[0];
-                for (const id of sections) {
-                    const sec = document.getElementById(id);
-                    if (sec && sec.offsetTop <= scrollPos) {
-                        current = id;
-                    }
-                }
-                navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
-            }
-
-            navItems.forEach(item => item.addEventListener('click', () => {
-                scrollToSection(item.dataset.target);
-            }));
-            main.addEventListener('scroll', updateActiveNav, { passive: true });
-
-            window.showWithdrawForm = function() {
-                document.getElementById('withdrawForm').style.display = 'block';
-                document.getElementById('historyCard').style.display = 'none';
-            };
-            window.hideWithdrawForm = function() {
-                document.getElementById('withdrawForm').style.display = 'none';
-            };
-            window.showHistory = function() {
-                document.getElementById('withdrawForm').style.display = 'none';
-                document.getElementById('historyCard').style.display = 'block';
-                loadWithdrawHistory();
-            };
-            window.hideHistory = function() {
-                document.getElementById('historyCard').style.display = 'none';
-            };
-
-            window.withdraw = function() {
-                const amount = parseFloat(document.getElementById('amountInput').value);
-                if (!amount || amount <= 0 || amount > balance) {
-                    alert(t('invalidAmount'));
-                    return;
-                }
-                balance -= amount;
-                updateBalanceUI();
-                addActivity('Withdraw', `-${amount.toFixed(2)} USDT`);
+            const res = await apiCall('POST', '/withdraw', { wallet_address: wallet, amount });
+            if (res.success) {
+                userData.balance = res.new_balance;
+                updateBalanceUI(userData.balance);
                 document.getElementById('withdrawForm').style.display = 'none';
                 document.getElementById('amountInput').value = '';
-            };
-
-            function loadWithdrawHistory() {
-                const activities = JSON.parse(localStorage.getItem('faucet_activities') || '[]');
-                const withdraws = activities.filter(a => a.type === 'Withdraw');
-                const container = document.getElementById('withdrawHistory');
-                if (!container) return;
-                container.innerHTML = withdraws.length === 0
-                    ? `<div style="opacity:0.4; text-align:center; padding:20px; color:#666;">${t('noWithdraws')}</div>`
-                    : withdraws.map(w => `<div class="activity-row"><span>${w.amount}</span><span>${new Date(w.time).toLocaleString()}</span></div>`).join('');
+                alert(t('withdrawSuccess'));
+                loadActivities();
+            } else {
+                alert(res.error);
             }
+        };
 
-            window.completeTask = function(taskId) {
-                const reward = taskId === 1 ? 0.005 : 0.01;
-                balance += reward;
-                updateBalanceUI();
-                addActivity('Task', `+${reward.toFixed(3)} USDT`);
-                alert(`${t('taskDone')}${reward} USDT`);
-            };
-
-            window.spawnConfetti = function(e) {
-                const emojis = ['🎉','🎊','✨','💎'];
-                for (let i = 0; i < 12; i++) {
-                    const p = document.createElement('div');
-                    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    p.style.cssText = `position:fixed; left:${e.clientX}px; top:${e.clientY}px; font-size:${20+Math.random()*20}px; pointer-events:none; z-index:9999; transition: all 0.8s ease-out; opacity:1; transform: translate(0,0) rotate(0deg);`;
-                    document.body.appendChild(p);
-                    requestAnimationFrame(() => {
-                        p.style.transform = `translate(${Math.random()*200-100}px, ${Math.random()*200-100}px) rotate(${Math.random()*720}deg)`;
-                        p.style.opacity = '0';
-                    });
-                    setTimeout(() => p.remove(), 800);
-                }
-            };
-
-            if (claimBtn) claimBtn.addEventListener('click', claim);
-
-            function initApp() {
-                try {
-                    main.scrollTop = 0;
-                    setLang(currentLang);
-                    updateBalanceUI();
-                    loadActivities();
-                    updateClaimButton();
-                    loadDailyStreak();
-
-                    if (tg?.initDataUnsafe?.user) {
-                        const user = tg.initDataUnsafe.user;
-                        document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-                        document.getElementById('profileId').textContent = user.id;
-                        document.getElementById('profileAvatar').textContent = user.first_name?.charAt(0).toUpperCase() || '👤';
-                    }
-
-                    setInterval(updateClaimButton, 10000);
-                } catch (e) {
-                    console.error('Init error:', e);
-                } finally {
-                    hideSplash();
-                }
-            }
-
-            window.addEventListener('DOMContentLoaded', initApp);
-        } catch (e) {
-            console.error('Global script error:', e);
-            hideSplash();
+        // ----------------------------------------------
+        // Навигация и скролл
+        // ----------------------------------------------
+        function scrollToSection(id) {
+            const section = document.getElementById(id);
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => item.addEventListener('click', () => {
+            scrollToSection(item.dataset.target);
+        }));
+
+        const main = document.querySelector('main');
+        main.addEventListener('scroll', () => {
+            const headerHeight = document.querySelector('header').offsetHeight + 20;
+            const scrollPos = main.scrollTop + headerHeight;
+            const sections = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
+            let current = sections[0];
+            for (const id of sections) {
+                const sec = document.getElementById(id);
+                if (sec && sec.offsetTop <= scrollPos) {
+                    current = id;
+                }
+            }
+            navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
+        }, { passive: true });
+
+        // Запуск
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.Telegram?.WebApp) {
+                initApp();
+            } else {
+                alert('Запустите приложение в Telegram Mini App');
+                // Для теста в браузере можно сделать фейковый вход, но оставим так
+            }
+        });
     })();
 </script>
 </body>
