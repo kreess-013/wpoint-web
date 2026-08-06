@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WGramm – Dark Contrast UI</title>
     <style>
+        /* все стили без изменений, как в предыдущей версии */
         :root {
             --bg: #020205;
             --glass: rgba(10,10,14,0.85);
@@ -20,7 +21,7 @@
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
- 
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background: #020205;
@@ -467,6 +468,14 @@
         <section id="tasks">
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
+                <!-- ВОЗВРАЩЁННЫЙ БЛОК Daily Quests -->
+                <div class="card">
+                    <div class="label" id="dailyQuestsTitle">Daily Quests</div>
+                    <div id="dailyQuests">
+                        <div class="task-item"><span>Quest 1</span><span class="badge">+0.01</span></div>
+                        <div class="task-item"><span>Quest 2</span><span class="badge">+0.02</span></div>
+                    </div>
+                </div>
                 <div class="card">
                     <div class="label" id="tasksListTitle">Tasks</div>
                     <div id="tasksList"></div>
@@ -509,14 +518,10 @@
 
 <script>
     (function() {
-        // ----------------------------------------------
-        // Конфигурация
-        // ----------------------------------------------
         const API_BASE = 'https://wpoint-backend.onrender.com'; // замените на ваш URL
         let apiToken = null;
         let userData = null;
 
-        // Словари локализации
         const locale = {
             en: {
                 profile: 'WGramm', faucet: 'Faucet', wallet: 'Wallet', tasks: 'Tasks', activity: 'Activity',
@@ -525,7 +530,7 @@
                 claimStreak: 'CLAIM REWARD', faucetBalance: 'Your Balance', claim: '💧 Claim',
                 support: 'Support the project by interacting with ads ❤️', walletBalance: 'USDT',
                 withdraw: 'Withdraw', history: 'History', historyTitle: '📜 Withdraw history',
-                noWithdraws: 'No withdraws', tasksListTitle: 'Tasks',
+                noWithdraws: 'No withdraws', dailyQuestsTitle: 'Daily Quests', tasksListTitle: 'Tasks',
                 activityTitle: 'Recent Activity', taskDone: 'Task completed! +', enterAmount: 'Enter amount',
                 withdrawSuccess: 'Withdrawal successful', invalidAmount: 'Invalid amount',
                 referralTitle: '👥 Invite a Friend', referralLinkLabel: 'Referral link',
@@ -538,7 +543,7 @@
                 claimStreak: 'ЗАБРАТЬ НАГРАДУ', faucetBalance: 'Ваш баланс', claim: '💧 Забрать',
                 support: 'Поддержите проект, взаимодействуя с рекламой ❤️', walletBalance: 'USDT',
                 withdraw: 'Вывести', history: 'История', historyTitle: '📜 История выводов',
-                noWithdraws: 'Нет выводов', tasksListTitle: 'Задания',
+                noWithdraws: 'Нет выводов', dailyQuestsTitle: 'Ежедневные квесты', tasksListTitle: 'Задания',
                 activityTitle: 'Последние действия', taskDone: 'Задание выполнено! +', enterAmount: 'Введите сумму',
                 withdrawSuccess: 'Вывод выполнен', invalidAmount: 'Некорректная сумма',
                 referralTitle: '👥 Пригласить друга', referralLinkLabel: 'Реферальная ссылка',
@@ -563,20 +568,20 @@
             document.getElementById('statRefsLabel').textContent = t('statRefs');
             document.getElementById('dailyStreakTitle').textContent = t('dailyStreak');
             document.getElementById('dailyStreakDesc').textContent = t('dailyStreakDesc');
+            document.getElementById('dailyBtn').textContent = t('claimStreak');
             document.getElementById('faucetBalanceLabel').textContent = t('faucetBalance');
+            document.getElementById('claimBtn').textContent = t('claim');
             document.getElementById('supportText').textContent = t('support');
             document.getElementById('withdrawActionLabel').textContent = t('withdraw');
             document.getElementById('historyActionLabel').textContent = t('history');
             document.getElementById('historyTitle').textContent = t('historyTitle');
+            document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle'); // ✅ перевод
             document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
             document.getElementById('activityTitle').textContent = t('activityTitle');
             document.getElementById('referralTitle').textContent = t('referralTitle');
             document.getElementById('referralLinkLabel').textContent = t('referralLinkLabel');
             document.getElementById('referralEarnedLabel').textContent = t('referralEarnedLabel');
             document.getElementById('claimRefRewardBtn').textContent = t('claimRefRewardBtn');
-            // Обновим кнопки streak, claim
-            document.getElementById('dailyBtn').textContent = t('claimStreak');
-            document.getElementById('claimBtn').textContent = t('claim');
         }
 
         window.setLang = function(lang) {
@@ -585,15 +590,11 @@
             document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
             document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
             applyAllLanguage();
-            // Отправить язык на сервер, если авторизованы
             if (apiToken) {
                 apiCall('PATCH', '/user/settings', { language: lang });
             }
         };
 
-        // ----------------------------------------------
-        // Вспомогательные функции API
-        // ----------------------------------------------
         async function apiCall(method, path, body) {
             const headers = {
                 'Content-Type': 'application/json'
@@ -619,9 +620,6 @@
             }
         }
 
-        // ----------------------------------------------
-        // Инициализация и авторизация
-        // ----------------------------------------------
         async function initApp() {
             const tg = window.Telegram?.WebApp;
             if (!tg || !tg.initData) {
@@ -629,7 +627,6 @@
                 return;
             }
             try {
-                // Авторизация
                 const authResult = await fetch(API_BASE + '/auth', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -642,31 +639,21 @@
                 apiToken = authResult.token;
                 userData = authResult.user;
 
-                // Установить язык из профиля
                 if (userData.language && userData.language !== currentLang) {
                     currentLang = userData.language;
                     localStorage.setItem('lang', currentLang);
                 }
-                setLang(currentLang); // применит язык и обновит интерфейс
+                setLang(currentLang);
 
-                // Загрузить профиль и статистику
                 await loadProfile();
-                // Загрузить стрик статус
                 await loadDailyStreakStatus();
-                // Загрузить задания
                 await loadTasks();
-                // Загрузить активности
                 await loadActivities();
-                // Загрузить реферальные данные
                 await loadReferralInfo();
 
-                // Обновить отображение баланса
                 updateBalanceUI(userData.balance);
-
-                // Запустить таймер клейма
                 startClaimTimer();
 
-                // Скрыть сплэш
                 document.getElementById('splash').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'flex';
             } catch (e) {
@@ -675,24 +662,18 @@
             }
         }
 
-        // ----------------------------------------------
-        // Профиль
-        // ----------------------------------------------
         async function loadProfile() {
             const profile = await apiCall('GET', '/user/profile');
             userData.balance = profile.user.balance;
             updateBalanceUI(profile.user.balance);
-            // Заполняем статистику
             document.getElementById('statEarned').textContent = profile.stats.total_earned.toFixed(2);
             document.getElementById('statWithdrawn').textContent = profile.stats.total_withdrawn.toFixed(2);
             document.getElementById('statGames').textContent = profile.stats.streak;
             document.getElementById('statRefs').textContent = profile.stats.referral_count;
             document.getElementById('referralEarnedValue').textContent = profile.stats.referral_balance.toFixed(2) + ' USDT';
-            // Имя и ID
             document.getElementById('profileName').textContent = userData.first_name || 'User';
             document.getElementById('profileId').textContent = userData.telegram_id;
             document.getElementById('profileAvatar').textContent = (userData.first_name || '👤').charAt(0).toUpperCase();
-            // Реферальная ссылка
             document.getElementById('referralLink').textContent = `https://t.me/WGrammBot?start=REF${userData.telegram_id}`;
         }
 
@@ -702,9 +683,6 @@
             document.getElementById('walletBalance').textContent = formatted;
         }
 
-        // ----------------------------------------------
-        // Кран (faucet)
-        // ----------------------------------------------
         let claimTimerInterval = null;
         function startClaimTimer() {
             updateClaimButtonFromServer();
@@ -733,16 +711,13 @@
         }
 
         async function claim() {
-            // Анимация (можно оставить локальной)
-            runClaimAnimation(0.01); // статично для анимации
+            runClaimAnimation(0.01);
             try {
                 const res = await apiCall('POST', '/faucet/claim');
                 if (res.success) {
                     userData.balance = res.new_balance;
                     updateBalanceUI(userData.balance);
-                    // Обновить таймер
                     updateClaimButtonFromServer();
-                    // Добавить запись в активности (перезагрузим список)
                     loadActivities();
                 } else if (res.error === 'cooldown') {
                     alert('Cooldown active');
@@ -783,9 +758,6 @@
 
         document.getElementById('claimBtn').addEventListener('click', claim);
 
-        // ----------------------------------------------
-        // Ежедневная серия
-        // ----------------------------------------------
         async function loadDailyStreakStatus() {
             const status = await apiCall('GET', '/daily-streak/status');
             renderStreakGrid(status.current_day, status.rewards);
@@ -819,9 +791,6 @@
             }
         };
 
-        // ----------------------------------------------
-        // Задания
-        // ----------------------------------------------
         async function loadTasks() {
             const data = await apiCall('GET', '/tasks');
             const container = document.getElementById('tasksList');
@@ -856,9 +825,6 @@
             }
         };
 
-        // ----------------------------------------------
-        // Рефералы
-        // ----------------------------------------------
         async function loadReferralInfo() {
             const stats = await apiCall('GET', '/referral/stats');
             document.getElementById('statRefs').textContent = stats.referral_count;
@@ -877,9 +843,6 @@
             }
         };
 
-        // ----------------------------------------------
-        // Активности
-        // ----------------------------------------------
         async function loadActivities() {
             const data = await apiCall('GET', '/activities');
             const container = document.getElementById('activityList');
@@ -896,9 +859,6 @@
             });
         }
 
-        // ----------------------------------------------
-        // Вывод
-        // ----------------------------------------------
         window.showWithdrawForm = function() {
             document.getElementById('withdrawForm').style.display = 'block';
             document.getElementById('historyCard').style.display = 'none';
@@ -947,9 +907,6 @@
             }
         };
 
-        // ----------------------------------------------
-        // Навигация и скролл
-        // ----------------------------------------------
         function scrollToSection(id) {
             const section = document.getElementById(id);
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -975,7 +932,6 @@
             navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
         }, { passive: true });
 
-        // Запуск
         window.addEventListener('DOMContentLoaded', () => {
             if (window.Telegram?.WebApp) {
                 initApp();
