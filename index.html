@@ -303,6 +303,7 @@
             white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 100%;
         }
 
+        /* ИСПРАВЛЕННАЯ НАВИГАЦИЯ */
         nav {
             position: absolute; bottom: 16px; left: 12px; right: 12px;
             display: flex; justify-content: space-around; align-items: center;
@@ -317,18 +318,19 @@
             justify-content: center; gap: 4px;
             font-size: 0.65rem; color: rgba(255,255,255,0.7);
             flex: 1; padding: 6px 0;
-            transition: color 0.2s ease;
-            cursor: pointer;
+            transition: all 0.2s ease; cursor: pointer;
             border-radius: 20px; letter-spacing: 0.3px;
+            position: relative;
         }
         .nav-item.active { color: #fff; }
         .nav-icon {
             font-size: 1.5rem;
             transition: transform 0.2s, margin-top 0.2s;
+            position: relative;
         }
         .nav-item.active .nav-icon {
             transform: scale(1.15);
-            margin-top: -4px; /* визуальное приподнятие без влияния на раскладку */
+            margin-top: -4px;
         }
 
         .avatar {
@@ -1146,7 +1148,7 @@
         };
 
         // -------------------------------------------------------------
-        // Навигация
+        // НАВИГАЦИЯ (ИСПРАВЛЕННАЯ ЛОГИКА ПОДСВЕТКИ)
         function scrollToSection(id) {
             const section = document.getElementById(id);
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1159,15 +1161,34 @@
 
         const main = document.querySelector('main');
         main.addEventListener('scroll', () => {
-            const headerHeight = document.querySelector('header').offsetHeight + 20;
-            const scrollPos = main.scrollTop + headerHeight;
+            const viewportMid = window.innerHeight / 2;
             const sections = ['profile', 'faucet', 'wallet', 'tasks', 'activity'];
             let current = sections[0];
+            // Ищем секцию, которая пересекает середину экрана
             for (const id of sections) {
                 const sec = document.getElementById(id);
-                if (sec && sec.offsetTop <= scrollPos) {
+                if (!sec) continue;
+                const rect = sec.getBoundingClientRect();
+                if (rect.top <= viewportMid && rect.bottom >= viewportMid) {
                     current = id;
+                    break;
                 }
+            }
+            // Если ни одна не пересекает середину (например, все секции выше или ниже), выбираем ближайшую по верхнему краю
+            if (!document.getElementById(current)) {
+                let closest = sections[0];
+                let minDist = Infinity;
+                for (const id of sections) {
+                    const sec = document.getElementById(id);
+                    if (!sec) continue;
+                    const rect = sec.getBoundingClientRect();
+                    const dist = Math.abs(rect.top - viewportMid);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closest = id;
+                    }
+                }
+                current = closest;
             }
             navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
         }, { passive: true });
