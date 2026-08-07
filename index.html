@@ -49,10 +49,9 @@
             background-blend-mode: normal;
         }
 
-        /* Консольный сплэш */
+        /* ---- НОВЫЙ КОНСОЛЬНЫЙ СПЛЭШ С РЕТРО-ФОНОМ ---- */
         #splash {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: #020205;
             color: #d0d0d0;
             font-family: 'SF Mono', 'JetBrains Mono', monospace;
             padding: 30px;
@@ -62,6 +61,11 @@
             align-items: center;
             z-index: 100;
             text-align: center;
+            /* Ретро-полоски + свечение в цвет акцента + тёмная база */
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(192,176,255,0.04) 2px, rgba(192,176,255,0.04) 4px),
+                radial-gradient(ellipse at 50% 30%, rgba(192,176,255,0.12) 0%, transparent 70%),
+                #020205;
         }
         #splash .console-line {
             opacity: 0;
@@ -667,18 +671,15 @@
                 const container = document.getElementById('dailyTaskContainer');
                 const msg = document.getElementById('dailyTaskDoneMsg');
                 if (res.can_claim) {
-                    // Задание доступно – активируем компонент
                     if (container) container.style.display = 'block';
                     if (msg) msg.style.display = 'none';
                     setupDailyTask();
                 } else {
-                    // Уже выполнено сегодня – показываем заглушку
                     if (container) container.style.display = 'none';
                     if (msg) msg.style.display = 'block';
                 }
             } catch (e) {
                 console.error('Failed to check daily quest status', e);
-                // При ошибке показываем задание (можно и скрыть, но лучше показать)
                 document.getElementById('dailyTaskContainer').style.display = 'block';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'none';
                 setupDailyTask();
@@ -693,29 +694,47 @@
                 taskEl.setAttribute('data-user-id', userData.telegram_id);
             }
 
-            // Заменяем элемент, чтобы сбросить все обработчики
             const newTaskEl = taskEl.cloneNode(true);
             taskEl.parentNode.replaceChild(newTaskEl, taskEl);
 
             newTaskEl.addEventListener('reward', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
+                refreshAllData();
             });
 
             newTaskEl.addEventListener('onError', (e) => {
                 console.error('AdsGram task error', e.detail);
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
+                refreshAllData();
             });
 
             newTaskEl.addEventListener('onBannerNotFound', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
+                refreshAllData();
             });
         }
 
         // -------------------------------------------------------------
-        // Инициализация приложения
+        // Единая функция обновления всех данных с сервера
+        async function refreshAllData() {
+            try {
+                await Promise.all([
+                    loadProfile(),
+                    loadDailyStreakStatus(),
+                    loadTasks(),
+                    loadActivities(),
+                    loadReferralInfo()
+                ]);
+            } catch (e) {
+                console.error('Refresh failed', e);
+            }
+        }
+
+        // -------------------------------------------------------------
+        // Инициализация приложения (с параллельной загрузкой данных)
         async function initApp() {
             const tg = window.Telegram?.WebApp;
 
@@ -763,35 +782,43 @@
                 return;
             }
 
+            // Запускаем параллельную загрузку всех данных
+            const dataLoadPromise = Promise.all([
+                loadProfile(),
+                loadDailyStreakStatus(),
+                loadTasks(),
+                loadActivities(),
+                loadReferralInfo(),
+                checkDailyTaskStatus()
+            ]);
+
+            // Показываем прогресс, пока данные загружаются
             addSplashLine('> Loading profile...');
             await sleep(300);
-            await loadProfile();
             addSplashLine('> Profile loaded', 'success');
 
             addSplashLine('> Loading daily streak...');
             await sleep(200);
-            await loadDailyStreakStatus();
             addSplashLine('> Daily streak ready', 'success');
 
             addSplashLine('> Loading tasks...');
             await sleep(200);
-            await loadTasks();
             addSplashLine('> Tasks loaded', 'success');
 
             addSplashLine('> Loading activities...');
             await sleep(200);
-            await loadActivities();
             addSplashLine('> Activities loaded', 'success');
 
             addSplashLine('> Loading referrals...');
             await sleep(200);
-            await loadReferralInfo();
             addSplashLine('> Referrals ready', 'success');
 
             addSplashLine('> Setting up daily ad task...');
             await sleep(200);
-            await checkDailyTaskStatus(); // Единый вызов вместо сброса и setup
             addSplashLine('> Daily task ready', 'success');
+
+            // Дожидаемся фактического завершения загрузки
+            await dataLoadPromise;
 
             addSplashLine('> FINISH', 'finish');
             await sleep(800);
@@ -880,10 +907,8 @@
             try {
                 const res = await apiCallWithLoading(btn, 'POST', '/faucet/claim');
                 if (res.success) {
-                    userData.balance = res.new_balance;
-                    updateBalanceUI(userData.balance);
+                    await refreshAllData();
                     updateClaimButtonFromServer();
-                    loadActivities();
                 } else if (res.error === 'cooldown') {
                     alert('Cooldown active');
                 }
@@ -984,10 +1009,7 @@
             try {
                 const res = await apiCallWithLoading(btn, 'POST', '/daily-streak/claim');
                 if (res.success) {
-                    userData.balance = res.new_balance;
-                    updateBalanceUI(userData.balance);
-                    await loadDailyStreakStatus();
-                    loadActivities();
+                    await refreshAllData();
                 } else {
                     alert(res.error);
                 }
@@ -1023,10 +1045,7 @@
             try {
                 const res = await apiCallWithLoading(btn, 'POST', `/tasks/${taskId}/complete`);
                 if (res.success) {
-                    userData.balance = res.new_balance;
-                    updateBalanceUI(userData.balance);
-                    loadTasks();
-                    loadActivities();
+                    await refreshAllData();
                     alert(`${t('taskDone')}${res.reward} USDT`);
                 } else {
                     alert(res.error);
@@ -1047,10 +1066,7 @@
             try {
                 const res = await apiCallWithLoading(btn, 'POST', '/referral/claim');
                 if (res.success) {
-                    userData.balance = res.new_balance;
-                    updateBalanceUI(userData.balance);
-                    document.getElementById('referralEarnedValue').textContent = '0.00 USDT';
-                    loadActivities();
+                    await refreshAllData();
                 } else {
                     alert(res.error);
                 }
@@ -1116,12 +1132,10 @@
             try {
                 const res = await apiCallWithLoading(btn, 'POST', '/withdraw', { wallet_address: wallet, amount });
                 if (res.success) {
-                    userData.balance = res.new_balance;
-                    updateBalanceUI(userData.balance);
                     document.getElementById('withdrawForm').style.display = 'none';
                     document.getElementById('amountInput').value = '';
                     alert(t('withdrawSuccess'));
-                    loadActivities();
+                    await refreshAllData();
                 } else {
                     alert(res.error);
                 }
