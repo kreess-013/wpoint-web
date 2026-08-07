@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WGramm – Dark Contrast UI</title>
-    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-     
     <style>
         :root {
             --bg: #020205;
@@ -132,7 +130,7 @@
             text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 500;
         }
 
-        /* ОБЩИЕ СТИЛИ КНОПОК (с тактильным откликом) */
+        /* Общие стили кнопок */
         button {
             background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.35);
             color: #eee; padding: 14px 24px; border-radius: 18px;
@@ -458,7 +456,8 @@
         const API_BASE = 'https://wpoint-backend.onrender.com';
         let apiToken = null;
         let userData = null;
-        let referralLink = ''; // будет хранить сгенерированную ссылку
+        let referralLink = '';
+        let streakCountdownInterval = null;
 
         const locale = {
             en: {
@@ -491,6 +490,7 @@
 
         let currentLang = localStorage.getItem('lang') || 'en';
         function t(key) { return locale[currentLang]?.[key] || key; }
+
         function applyAllLanguage() {
             document.getElementById('faucetTitle').textContent = t('faucet');
             document.getElementById('walletTitle').textContent = t('wallet');
@@ -626,8 +626,11 @@
                 updateBalanceUI(userData.balance);
                 startClaimTimer();
 
-                // Ежедневный стрик: привязываем обработчик
+                // Привязываем обработчики
                 document.getElementById('dailyBtn').addEventListener('click', claimDailyStreak);
+                document.getElementById('claimBtn').addEventListener('click', claim);
+                document.getElementById('claimRefRewardBtn').addEventListener('click', claimRefReward);
+                document.getElementById('withdrawBtn').addEventListener('click', withdraw);
 
                 document.getElementById('splash').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'flex';
@@ -734,33 +737,61 @@
             nextLine();
         }
 
-        document.getElementById('claimBtn').addEventListener('click', claim);
-
-        // Daily Streak
+        // Daily Streak (с таймером)
         async function loadDailyStreakStatus() {
             const status = await apiCall('GET', '/daily-streak/status');
-            renderStreakGrid(status.current_day, status.rewards);
+            renderStreakGrid(status.current_day, status.rewards, status.claimed_today);
             const btn = document.getElementById('dailyBtn');
             if (status.claimed_today) {
                 btn.disabled = true;
-                btn.textContent = 'Already claimed today';
+                startStreakCountdown();
             } else {
+                clearInterval(streakCountdownInterval);
                 btn.disabled = false;
                 btn.textContent = btn.getAttribute('data-original-text') || t('claimStreak');
             }
         }
 
-        function renderStreakGrid(currentDay, rewards) {
+        function renderStreakGrid(currentDay, rewards, claimedToday) {
             const grid = document.getElementById('streakGrid');
             grid.innerHTML = '';
             for (let i = 1; i <= 7; i++) {
                 const dayEl = document.createElement('div');
                 dayEl.className = 'streak-day';
-                if (i === currentDay) dayEl.classList.add('active');
-                else if (i < currentDay) dayEl.classList.add('claimed');
+                if (i === currentDay) {
+                    if (claimedToday) {
+                        dayEl.classList.add('claimed');
+                    } else {
+                        dayEl.classList.add('active');
+                    }
+                } else if (i < currentDay) {
+                    dayEl.classList.add('claimed');
+                }
                 dayEl.innerHTML = `<div class="streak-num">${i}</div><div class="streak-reward">${rewards[i-1].toFixed(2)}</div>`;
                 grid.appendChild(dayEl);
             }
+        }
+
+        function startStreakCountdown() {
+            clearInterval(streakCountdownInterval);
+            function updateBtn() {
+                const now = new Date();
+                const midnight = new Date(now);
+                midnight.setHours(24, 0, 0, 0);
+                const diff = midnight - now;
+                if (diff <= 0) {
+                    clearInterval(streakCountdownInterval);
+                    loadDailyStreakStatus();
+                    return;
+                }
+                const hours = Math.floor(diff / 3600000);
+                const mins = Math.floor((diff % 3600000) / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                const btn = document.getElementById('dailyBtn');
+                if (btn) btn.textContent = `Next in ${hours}h ${mins}m ${secs}s`;
+            }
+            updateBtn();
+            streakCountdownInterval = setInterval(updateBtn, 1000);
         }
 
         window.claimDailyStreak = async function() {
@@ -770,7 +801,7 @@
                 if (res.success) {
                     userData.balance = res.new_balance;
                     updateBalanceUI(userData.balance);
-                    loadDailyStreakStatus();
+                    await loadDailyStreakStatus();
                     loadActivities();
                 } else {
                     alert(res.error);
@@ -793,7 +824,7 @@
                 } else {
                     const btn = document.createElement('button');
                     btn.textContent = 'Claim';
-                    btn.classList.add('mini-btn'); // стиль маленькой кнопки
+                    btn.classList.add('mini-btn');
                     btn.setAttribute('data-original-text', 'Claim');
                     btn.onclick = () => completeTask(task.id, btn);
                     div.appendChild(btn);
@@ -838,7 +869,6 @@
                 }
             } catch (e) {}
         };
-        document.getElementById('claimRefRewardBtn').addEventListener('click', claimRefReward);
 
         // Activities
         async function loadActivities() {
@@ -908,7 +938,6 @@
                 }
             } catch (e) {}
         };
-        document.getElementById('withdrawBtn').addEventListener('click', withdraw);
 
         // Навигация
         function scrollToSection(id) {
