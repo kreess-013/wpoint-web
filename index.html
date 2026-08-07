@@ -660,23 +660,28 @@
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
         // -------------------------------------------------------------
-        // Обработка ежедневного задания (AdsGram) – с запоминанием даты выполнения
-        function checkDailyTaskReset() {
-            const doneDate = localStorage.getItem('dailyTaskDoneDate');
-            const today = new Date().toDateString();
-            const container = document.getElementById('dailyTaskContainer');
-            const msg = document.getElementById('dailyTaskDoneMsg');
-
-            if (doneDate === today) {
-                // Уже выполнено сегодня – сразу показываем «Возвращайтесь завтра»
-                if (container) container.style.display = 'none';
-                if (msg) msg.style.display = 'block';
-            } else {
-                // Новый день или ещё не выполняли
-                if (container) container.style.display = 'block';
-                if (msg) msg.style.display = 'none';
-                // Убираем старую запись
-                localStorage.removeItem('dailyTaskDoneDate');
+        // Ежедневное задание (AdsGram) – серверная проверка статуса
+        async function checkDailyTaskStatus() {
+            try {
+                const res = await apiCall('GET', '/daily-quest/status');
+                const container = document.getElementById('dailyTaskContainer');
+                const msg = document.getElementById('dailyTaskDoneMsg');
+                if (res.can_claim) {
+                    // Задание доступно – активируем компонент
+                    if (container) container.style.display = 'block';
+                    if (msg) msg.style.display = 'none';
+                    setupDailyTask();
+                } else {
+                    // Уже выполнено сегодня – показываем заглушку
+                    if (container) container.style.display = 'none';
+                    if (msg) msg.style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Failed to check daily quest status', e);
+                // При ошибке показываем задание (можно и скрыть, но лучше показать)
+                document.getElementById('dailyTaskContainer').style.display = 'block';
+                document.getElementById('dailyTaskDoneMsg').style.display = 'none';
+                setupDailyTask();
             }
         }
 
@@ -688,24 +693,24 @@
                 taskEl.setAttribute('data-user-id', userData.telegram_id);
             }
 
-            taskEl.addEventListener('reward', () => {
+            // Заменяем элемент, чтобы сбросить все обработчики
+            const newTaskEl = taskEl.cloneNode(true);
+            taskEl.parentNode.replaceChild(newTaskEl, taskEl);
+
+            newTaskEl.addEventListener('reward', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
-                localStorage.setItem('dailyTaskDoneDate', new Date().toDateString());
             });
 
-            taskEl.addEventListener('onError', (e) => {
+            newTaskEl.addEventListener('onError', (e) => {
                 console.error('AdsGram task error', e.detail);
-                // При ошибке тоже скрываем задание и запоминаем
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
-                localStorage.setItem('dailyTaskDoneDate', new Date().toDateString());
             });
 
-            taskEl.addEventListener('onBannerNotFound', () => {
+            newTaskEl.addEventListener('onBannerNotFound', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
-                localStorage.setItem('dailyTaskDoneDate', new Date().toDateString());
             });
         }
 
@@ -785,8 +790,7 @@
 
             addSplashLine('> Setting up daily ad task...');
             await sleep(200);
-            checkDailyTaskReset();
-            setupDailyTask();
+            await checkDailyTaskStatus(); // Единый вызов вместо сброса и setup
             addSplashLine('> Daily task ready', 'success');
 
             addSplashLine('> FINISH', 'finish');
