@@ -303,7 +303,6 @@
             white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 100%;
         }
 
-        /* ====== ИСПРАВЛЕННАЯ НАВИГАЦИЯ ====== */
         nav {
             position: absolute; bottom: 16px; left: 12px; right: 12px;
             display: flex; justify-content: space-around; align-items: center;
@@ -318,15 +317,14 @@
             justify-content: center; gap: 4px;
             font-size: 0.65rem; color: rgba(255,255,255,0.7);
             flex: 1; padding: 6px 0;
-            transition: all 0.2s ease; cursor: pointer;
+            transition: color 0.2s ease;
+            cursor: pointer;
             border-radius: 20px; letter-spacing: 0.3px;
-            position: relative; /* чтобы иконка могла позиционироваться без сдвига соседей */
         }
         .nav-item.active { color: #fff; }
         .nav-icon {
             font-size: 1.5rem;
             transition: transform 0.2s, margin-top 0.2s;
-            position: relative;
         }
         .nav-item.active .nav-icon {
             transform: scale(1.15);
