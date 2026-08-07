@@ -347,14 +347,13 @@
 
         /* AdsGram Task – внутренняя обёртка, чтобы кнопка не вылезала */
         #dailyTaskContainer {
-            overflow: hidden; /* на случай, если компонент попытается расшириться */
+            overflow: hidden;
             display: block;
         }
         adsgram-task {
             display: block;
             width: 100%;
         }
-        /* скрываем сообщение по умолчанию */
         #dailyTaskDoneMsg {
             display: none;
         }
@@ -455,11 +454,20 @@
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
 
-                <!-- AdsGram Daily Task -->
+                <!-- AdsGram Daily Task – статичный вариант -->
                 <div class="card" id="dailyTaskCard">
                     <div class="label" id="dailyQuestsTitle">Daily Quests</div>
                     <div id="dailyTaskContainer">
-                        <!-- adsgram-task будет вставлен динамически -->
+                        <adsgram-task
+                            data-block-id="task-41724"
+                            id="dailyTask"
+                            class="task"
+                        >
+                            <span slot="reward" class="badge">+0.01</span>
+                            <button slot="button">Claim</button>
+                            <span slot="done" class="badge">Done</span>
+                            <span slot="claim" class="badge">Processing...</span>
+                        </adsgram-task>
                     </div>
                     <div id="dailyTaskDoneMsg">
                         Возвращайтесь завтра 👋
@@ -648,44 +656,24 @@
 
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        // ----- Динамический AdsGram Task -----
-        function checkDailyTaskReset() {
+        // ----- AdsGram Task (навешиваем события и user-id) -----
+        function setupDailyTask() {
+            const taskEl = document.getElementById('dailyTask');
+            if (!taskEl) return;
+
+            // Устанавливаем data-user-id после авторизации
+            if (userData && userData.telegram_id) {
+                taskEl.setAttribute('data-user-id', userData.telegram_id);
+            }
+
+            // Сбрасываем состояние, если новый день
             const lastReset = localStorage.getItem('dailyTaskResetDate');
             const today = new Date().toDateString();
             if (lastReset !== today) {
-                const container = document.getElementById('dailyTaskContainer');
-                const msg = document.getElementById('dailyTaskDoneMsg');
-                if (container && msg) {
-                    container.style.display = 'block';
-                    msg.style.display = 'none';
-                    setupDailyTask();
-                }
+                document.getElementById('dailyTaskContainer').style.display = 'block';
+                document.getElementById('dailyTaskDoneMsg').style.display = 'none';
                 localStorage.setItem('dailyTaskResetDate', today);
             }
-        }
-
-        function setupDailyTask() {
-            const container = document.getElementById('dailyTaskContainer');
-            if (!container) return;
-
-            // Очищаем контейнер перед созданием нового компонента
-            container.innerHTML = '';
-
-            const taskEl = document.createElement('adsgram-task');
-            taskEl.setAttribute('data-block-id', 'task-41719');
-            taskEl.setAttribute('data-user-id', userData.telegram_id);
-            taskEl.setAttribute('id', 'dailyTask');
-            taskEl.classList.add('task');
-
-            // Слоты (как в документации AdsGram)
-            taskEl.innerHTML = `
-                <span slot="reward" class="badge">+0.01</span>
-                <button slot="button" class="mini-btn">Claim</button>
-                <span slot="done" class="badge">Done</span>
-                <span slot="claim" class="badge">Processing...</span>
-            `;
-
-            container.appendChild(taskEl);
 
             // Обработчики событий
             taskEl.addEventListener('reward', () => {
@@ -695,7 +683,6 @@
 
             taskEl.addEventListener('onError', (e) => {
                 console.error('AdsGram task error', e.detail);
-                // При ошибке тоже скрываем задание и показываем сообщение
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
             });
@@ -706,7 +693,7 @@
             });
         }
 
-        // ----- Инициализация приложения (с консолью) -----
+        // ----- Инициализация приложения -----
         async function initApp() {
             const tg = window.Telegram?.WebApp;
 
@@ -781,14 +768,12 @@
 
             addSplashLine('> Setting up daily ad task...');
             await sleep(200);
-            checkDailyTaskReset();
             setupDailyTask();
             addSplashLine('> Daily task ready', 'success');
 
             addSplashLine('> FINISH', 'finish');
             await sleep(800);
 
-            // Переход к приложению
             document.getElementById('splash').style.display = 'none';
             document.getElementById('mainApp').style.display = 'flex';
 
