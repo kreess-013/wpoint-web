@@ -757,7 +757,7 @@
             document.getElementById('profileName').textContent = userData.first_name || 'User';
             document.getElementById('profileId').textContent = userData.telegram_id;
             document.getElementById('profileAvatar').textContent = (userData.first_name || '👤').charAt(0).toUpperCase();
-            document.getElementById('referralLink').textContent = `https://t.me/WGrammBot?start=REF${userData.telegram_id}`;
+            document.getElementById('referralLink').textContent = `https://t.me/workers_gram_bot/wwgram?startapp=REF${userData.telegram_id}`;
         }
 
         function updateBalanceUI(balance) {
