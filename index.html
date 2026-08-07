@@ -660,18 +660,23 @@
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
         // -------------------------------------------------------------
-        // Обработка ежедневного задания (AdsGram)
+        // Обработка ежедневного задания (AdsGram) – с запоминанием даты выполнения
         function checkDailyTaskReset() {
-            const lastReset = localStorage.getItem('dailyTaskResetDate');
+            const doneDate = localStorage.getItem('dailyTaskDoneDate');
             const today = new Date().toDateString();
-            if (lastReset !== today) {
-                const container = document.getElementById('dailyTaskContainer');
-                const msg = document.getElementById('dailyTaskDoneMsg');
-                if (container && msg) {
-                    container.style.display = 'block';
-                    msg.style.display = 'none';
-                }
-                localStorage.setItem('dailyTaskResetDate', today);
+            const container = document.getElementById('dailyTaskContainer');
+            const msg = document.getElementById('dailyTaskDoneMsg');
+
+            if (doneDate === today) {
+                // Уже выполнено сегодня – сразу показываем «Возвращайтесь завтра»
+                if (container) container.style.display = 'none';
+                if (msg) msg.style.display = 'block';
+            } else {
+                // Новый день или ещё не выполняли
+                if (container) container.style.display = 'block';
+                if (msg) msg.style.display = 'none';
+                // Убираем старую запись
+                localStorage.removeItem('dailyTaskDoneDate');
             }
         }
 
@@ -686,15 +691,21 @@
             taskEl.addEventListener('reward', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
+                localStorage.setItem('dailyTaskDoneDate', new Date().toDateString());
             });
 
             taskEl.addEventListener('onError', (e) => {
                 console.error('AdsGram task error', e.detail);
+                // При ошибке тоже скрываем задание и запоминаем
+                document.getElementById('dailyTaskContainer').style.display = 'none';
+                document.getElementById('dailyTaskDoneMsg').style.display = 'block';
+                localStorage.setItem('dailyTaskDoneDate', new Date().toDateString());
             });
 
             taskEl.addEventListener('onBannerNotFound', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
+                localStorage.setItem('dailyTaskDoneDate', new Date().toDateString());
             });
         }
 
