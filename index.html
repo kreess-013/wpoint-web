@@ -49,6 +49,43 @@
             background-blend-mode: normal;
         }
 
+        /* ----- КОНСОЛЬНЫЙ СПЛЭШ ----- */
+        #splash {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #020205;
+            color: #d0d0d0;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+        }
+        #splash .console-line {
+            opacity: 0;
+            animation: terminalFade 0.4s forwards;
+            margin-bottom: 6px;
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: #d0d0d0;
+        }
+        #splash .console-line.success { color: #c0b0ff; font-weight: 600; }
+        #splash .console-line.error { color: #ff5555; }
+        #splash .console-line.finish {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-top: 20px;
+            animation: none;
+            opacity: 1;
+        }
+        @keyframes terminalFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .app {
             position: relative; z-index:1;
             width: 100%; height: 100vh; height: 100dvh;
@@ -211,10 +248,6 @@
             margin-bottom: 10px; font-size: 14px; letter-spacing: 1px;
         }
         .terminal-success { color: white; font-weight: 700; font-size: 18px; text-align: center; }
-        @keyframes terminalFade {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
 
         .streak-grid {
             display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -311,28 +344,11 @@
             font-family: var(--font);
         }
         input::placeholder { color: #666; opacity: 0.8; }
-
-        /* Стили для AdsGram task */
-        #dailyTaskCard .task {
-            --adsgram-task-font-size: 14px;
-            --adsgram-task-icon-size: 20px;
-            --adsgram-task-icon-title-gap: 8px;
-            --adsgram-task-icon-border-radius: 6px;
-            --adsgram-task-button-width: auto;
-        }
-        #dailyTaskDoneMsg {
-            display: none;
-            text-align: center;
-            color: #ccc;
-            padding: 16px;
-            font-size: 14px;
-            border: 1px dashed rgba(255,255,255,0.2);
-            border-radius: 12px;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
+
+<!-- КОНСОЛЬНЫЙ ЭКРАН ЗАГРУЗКИ -->
 <div id="splash">
     <div id="splashContent"></div>
 </div>
@@ -425,20 +441,11 @@
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
 
-                <!-- AdsGram Daily Task -->
+                <!-- AdsGram Daily Task – динамический контейнер -->
                 <div class="card" id="dailyTaskCard">
                     <div class="label" id="dailyQuestsTitle">Daily Quests</div>
                     <div id="dailyTaskContainer">
-                        <adsgram-task
-                            data-block-id="task-41724"
-                            id="dailyTask"
-                            class="task"
-                        >
-                            <span slot="reward" class="badge">+0.01</span>
-                            <button slot="button" class="mini-btn">Claim</button>
-                            <span slot="done" class="badge">Done</span>
-                            <span slot="claim" class="badge">Processing...</span>
-                        </adsgram-task>
+                        <!-- adsgram-task создастся здесь -->
                     </div>
                     <div id="dailyTaskDoneMsg">
                         Возвращайтесь завтра 👋
@@ -615,6 +622,7 @@
             return data;
         }
 
+        // ----- Консольная загрузка -----
         function addSplashLine(text, cls = '') {
             const container = document.getElementById('splashContent');
             if (!container) return;
@@ -626,8 +634,7 @@
 
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        // -------------------------------------------------------------
-        // Обработка ежедневного задания (AdsGram)
+        // ----- Динамический AdsGram Task -----
         function checkDailyTaskReset() {
             const lastReset = localStorage.getItem('dailyTaskResetDate');
             const today = new Date().toDateString();
@@ -637,18 +644,32 @@
                 if (container && msg) {
                     container.style.display = 'block';
                     msg.style.display = 'none';
+                    setupDailyTask();
                 }
                 localStorage.setItem('dailyTaskResetDate', today);
             }
         }
 
         function setupDailyTask() {
-            const taskEl = document.getElementById('dailyTask');
-            if (!taskEl) return;
+            const container = document.getElementById('dailyTaskContainer');
+            if (!container) return;
 
-            if (userData && userData.telegram_id) {
-                taskEl.setAttribute('data-user-id', userData.telegram_id);
-            }
+            container.innerHTML = '';
+
+            const taskEl = document.createElement('adsgram-task');
+            taskEl.setAttribute('data-block-id', 'task-41719');
+            taskEl.setAttribute('data-user-id', userData.telegram_id);
+            taskEl.setAttribute('id', 'dailyTask');
+            taskEl.classList.add('task');
+
+            taskEl.innerHTML = `
+                <span slot="reward" class="badge">+0.01</span>
+                <button slot="button" class="mini-btn">Claim</button>
+                <span slot="done" class="badge">Done</span>
+                <span slot="claim" class="badge">Processing...</span>
+            `;
+
+            container.appendChild(taskEl);
 
             taskEl.addEventListener('reward', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
@@ -657,6 +678,8 @@
 
             taskEl.addEventListener('onError', (e) => {
                 console.error('AdsGram task error', e.detail);
+                document.getElementById('dailyTaskContainer').style.display = 'none';
+                document.getElementById('dailyTaskDoneMsg').style.display = 'block';
             });
 
             taskEl.addEventListener('onBannerNotFound', () => {
@@ -665,11 +688,11 @@
             });
         }
 
-        // -------------------------------------------------------------
-        // Инициализация приложения
+        // ----- Инициализация приложения (с консолью) -----
         async function initApp() {
             const tg = window.Telegram?.WebApp;
 
+            // Шаг 1
             addSplashLine('> Starting WGramm...');
             await sleep(400);
 
@@ -680,12 +703,14 @@
             }
             addSplashLine('> Telegram WebApp detected', 'success');
 
+            // Шаг 2
             addSplashLine('> Initializing WebApp...');
             await sleep(300);
             tg.ready();
             tg.expand();
             addSplashLine('> WebApp ready', 'success');
 
+            // Шаг 3
             addSplashLine('> Retrieving initData...');
             await sleep(200);
             const initData = tg.initData;
@@ -695,6 +720,7 @@
             }
             addSplashLine('> initData received', 'success');
 
+            // Шаг 4
             addSplashLine('> Authenticating...');
             await sleep(500);
             try {
@@ -714,6 +740,7 @@
                 return;
             }
 
+            // Шаг 5 – загрузка данных
             addSplashLine('> Loading profile...');
             await sleep(300);
             await loadProfile();
@@ -748,9 +775,11 @@
             addSplashLine('> FINISH', 'finish');
             await sleep(800);
 
+            // Переход к приложению
             document.getElementById('splash').style.display = 'none';
             document.getElementById('mainApp').style.display = 'flex';
 
+            // Дополнительные настройки
             if (userData.language && userData.language !== currentLang) {
                 currentLang = userData.language;
                 localStorage.setItem('lang', currentLang);
@@ -759,9 +788,7 @@
 
             referralLink = `https://t.me/workers_gram_bot/wwgram?startapp=REF${userData.telegram_id}`;
             document.getElementById('copyReferralBtn').addEventListener('click', () => {
-                navigator.clipboard.writeText(referralLink).then(() => {
-                    alert('Ссылка скопирована!');
-                });
+                navigator.clipboard.writeText(referralLink).then(() => alert('Ссылка скопирована!'));
             });
 
             updateBalanceUI(userData.balance);
@@ -773,8 +800,7 @@
             document.getElementById('withdrawBtn').addEventListener('click', withdraw);
         }
 
-        // -------------------------------------------------------------
-        // Профиль
+        // ----- Профиль -----
         async function loadProfile() {
             const profile = await apiCall('GET', '/user/profile');
             userData.balance = profile.user.balance;
@@ -795,8 +821,7 @@
             document.getElementById('walletBalance').textContent = formatted;
         }
 
-        // -------------------------------------------------------------
-        // Кран (faucet)
+        // ----- Faucet -----
         let claimTimerInterval = null;
         function startClaimTimer() {
             updateClaimButtonFromServer();
@@ -873,8 +898,7 @@
             nextLine();
         }
 
-        // -------------------------------------------------------------
-        // Ежедневный стрик
+        // ----- Daily Streak -----
         async function loadDailyStreakStatus() {
             const status = await apiCall('GET', '/daily-streak/status');
             renderStreakGrid(status.current_day, status.rewards, status.claimed_today);
@@ -946,8 +970,7 @@
             } catch (e) {}
         };
 
-        // -------------------------------------------------------------
-        // Задания (постоянные)
+        // ----- Постоянные задания -----
         async function loadTasks() {
             const data = await apiCall('GET', '/tasks');
             const container = document.getElementById('tasksList');
@@ -986,8 +1009,7 @@
             } catch (e) {}
         };
 
-        // -------------------------------------------------------------
-        // Рефералы
+        // ----- Рефералы -----
         async function loadReferralInfo() {
             const stats = await apiCall('GET', '/referral/stats');
             document.getElementById('statRefs').textContent = stats.referral_count;
@@ -1009,8 +1031,7 @@
             } catch (e) {}
         };
 
-        // -------------------------------------------------------------
-        // Активность
+        // ----- Активности -----
         async function loadActivities() {
             const data = await apiCall('GET', '/activities');
             const container = document.getElementById('activityList');
@@ -1027,8 +1048,7 @@
             });
         }
 
-        // -------------------------------------------------------------
-        // Кошелёк и вывод
+        // ----- Кошелёк и вывод -----
         window.showWithdrawForm = function() {
             document.getElementById('withdrawForm').style.display = 'block';
             document.getElementById('historyCard').style.display = 'none';
@@ -1080,17 +1100,14 @@
             } catch (e) {}
         };
 
-        // -------------------------------------------------------------
-        // Навигация
+        // ----- Навигация -----
         function scrollToSection(id) {
             const section = document.getElementById(id);
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => item.addEventListener('click', () => {
-            scrollToSection(item.dataset.target);
-        }));
+        navItems.forEach(item => item.addEventListener('click', () => scrollToSection(item.dataset.target)));
 
         const main = document.querySelector('main');
         main.addEventListener('scroll', () => {
@@ -1100,9 +1117,7 @@
             let current = sections[0];
             for (const id of sections) {
                 const sec = document.getElementById(id);
-                if (sec && sec.offsetTop <= scrollPos) {
-                    current = id;
-                }
+                if (sec && sec.offsetTop <= scrollPos) current = id;
             }
             navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
         }, { passive: true });
