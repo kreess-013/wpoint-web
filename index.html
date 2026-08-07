@@ -39,18 +39,17 @@
             position: relative;
         }
 
-        /* Основной фон приложения – ретро-полоски + свечение, как у сплэша */
+        /* Ретро-фон приложения (такой же, как на сплэше) */
         body::before {
             content: '';
             position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            background: 
+            background:
                 repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(192,176,255,0.04) 2px, rgba(192,176,255,0.04) 4px),
                 radial-gradient(ellipse at 50% 30%, rgba(192,176,255,0.12) 0%, transparent 70%),
                 #020205;
-            background-blend-mode: normal;
         }
 
-        /* ---- КОНСОЛЬНЫЙ СПЛЭШ (тот же фон, что и body) ---- */
+        /* Консольный сплэш (наследует тот же фон через body) */
         #splash {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             color: #d0d0d0;
@@ -62,11 +61,6 @@
             align-items: center;
             z-index: 100;
             text-align: center;
-            /* Тот же фон, что и у body – ретро-полоски + свечение */
-            background: 
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(192,176,255,0.04) 2px, rgba(192,176,255,0.04) 4px),
-                radial-gradient(ellipse at 50% 30%, rgba(192,176,255,0.12) 0%, transparent 70%),
-                #020205;
         }
         #splash .console-line {
             opacity: 0;
@@ -309,6 +303,7 @@
             white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 100%;
         }
 
+        /* ====== ИСПРАВЛЕННАЯ НАВИГАЦИЯ ====== */
         nav {
             position: absolute; bottom: 16px; left: 12px; right: 12px;
             display: flex; justify-content: space-around; align-items: center;
@@ -322,22 +317,21 @@
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; gap: 4px;
             font-size: 0.65rem; color: rgba(255,255,255,0.7);
-            flex: 1; padding: 6px 0; transition: all 0.2s ease; cursor: pointer;
+            flex: 1; padding: 6px 0;
+            transition: all 0.2s ease; cursor: pointer;
             border-radius: 20px; letter-spacing: 0.3px;
-            /* фиксируем размеры, чтобы scale не влиял на поток */
-            will-change: transform;
-            transform-origin: center center;
+            position: relative; /* чтобы иконка могла позиционироваться без сдвига соседей */
         }
-        .nav-item.active {
-            color: #fff;
-            /* поднимаем без transform: translateY, чтобы не сбивать поток; используем margin */
-            margin-top: -2px;
-            /* scale применяем к внутренней иконке и тексту, а не к самому элементу */
+        .nav-item.active { color: #fff; }
+        .nav-icon {
+            font-size: 1.5rem;
+            transition: transform 0.2s, margin-top 0.2s;
+            position: relative;
         }
         .nav-item.active .nav-icon {
-            transform: scale(1.1);
+            transform: scale(1.15);
+            margin-top: -4px; /* визуальное приподнятие без влияния на раскладку */
         }
-        .nav-icon { font-size: 1.5rem; transition: transform 0.2s; display: inline-block; }
 
         .avatar {
             width:80px; height:80px; border-radius:50%;
