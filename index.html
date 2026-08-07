@@ -345,23 +345,27 @@
         }
         input::placeholder { color: #666; opacity: 0.8; }
 
-        /* AdsGram Task – внутренняя обёртка, чтобы кнопка не вылезала */
-        #dailyTaskContainer {
-            overflow: hidden;
-            display: block;
-        }
-        adsgram-task {
-            display: block;
-            width: 100%;
+        /* Стили для AdsGram task – дизайн из примера */
+        #dailyTaskCard .task {
+            --adsgram-task-font-size: 14px;
+            --adsgram-task-icon-size: 20px;
+            --adsgram-task-icon-title-gap: 8px;
+            --adsgram-task-icon-border-radius: 6px;
+            --adsgram-task-button-width: auto;
         }
         #dailyTaskDoneMsg {
             display: none;
+            text-align: center;
+            color: #ccc;
+            padding: 16px;
+            font-size: 14px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-
-<!-- Консольный сплэш -->
 <div id="splash">
     <div id="splashContent"></div>
 </div>
@@ -454,7 +458,7 @@
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
 
-                <!-- AdsGram Daily Task – статичный вариант -->
+                <!-- AdsGram Daily Task – дизайн из примера, но с task-41724 -->
                 <div class="card" id="dailyTaskCard">
                     <div class="label" id="dailyQuestsTitle">Daily Quests</div>
                     <div id="dailyTaskContainer">
@@ -464,7 +468,7 @@
                             class="task"
                         >
                             <span slot="reward" class="badge">+0.01</span>
-                            <button slot="button">Claim</button>
+                            <button slot="button" class="mini-btn">Claim</button>
                             <span slot="done" class="badge">Done</span>
                             <span slot="claim" class="badge">Processing...</span>
                         </adsgram-task>
@@ -644,7 +648,6 @@
             return data;
         }
 
-        // ----- Консольная загрузка -----
         function addSplashLine(text, cls = '') {
             const container = document.getElementById('splashContent');
             if (!container) return;
@@ -656,26 +659,30 @@
 
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        // ----- AdsGram Task (навешиваем события и user-id) -----
+        // -------------------------------------------------------------
+        // Обработка ежедневного задания (AdsGram)
+        function checkDailyTaskReset() {
+            const lastReset = localStorage.getItem('dailyTaskResetDate');
+            const today = new Date().toDateString();
+            if (lastReset !== today) {
+                const container = document.getElementById('dailyTaskContainer');
+                const msg = document.getElementById('dailyTaskDoneMsg');
+                if (container && msg) {
+                    container.style.display = 'block';
+                    msg.style.display = 'none';
+                }
+                localStorage.setItem('dailyTaskResetDate', today);
+            }
+        }
+
         function setupDailyTask() {
             const taskEl = document.getElementById('dailyTask');
             if (!taskEl) return;
 
-            // Устанавливаем data-user-id после авторизации
             if (userData && userData.telegram_id) {
                 taskEl.setAttribute('data-user-id', userData.telegram_id);
             }
 
-            // Сбрасываем состояние, если новый день
-            const lastReset = localStorage.getItem('dailyTaskResetDate');
-            const today = new Date().toDateString();
-            if (lastReset !== today) {
-                document.getElementById('dailyTaskContainer').style.display = 'block';
-                document.getElementById('dailyTaskDoneMsg').style.display = 'none';
-                localStorage.setItem('dailyTaskResetDate', today);
-            }
-
-            // Обработчики событий
             taskEl.addEventListener('reward', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
@@ -683,8 +690,6 @@
 
             taskEl.addEventListener('onError', (e) => {
                 console.error('AdsGram task error', e.detail);
-                document.getElementById('dailyTaskContainer').style.display = 'none';
-                document.getElementById('dailyTaskDoneMsg').style.display = 'block';
             });
 
             taskEl.addEventListener('onBannerNotFound', () => {
@@ -693,7 +698,8 @@
             });
         }
 
-        // ----- Инициализация приложения -----
+        // -------------------------------------------------------------
+        // Инициализация приложения
         async function initApp() {
             const tg = window.Telegram?.WebApp;
 
@@ -768,6 +774,7 @@
 
             addSplashLine('> Setting up daily ad task...');
             await sleep(200);
+            checkDailyTaskReset();
             setupDailyTask();
             addSplashLine('> Daily task ready', 'success');
 
@@ -785,7 +792,9 @@
 
             referralLink = `https://t.me/workers_gram_bot/wwgram?startapp=REF${userData.telegram_id}`;
             document.getElementById('copyReferralBtn').addEventListener('click', () => {
-                navigator.clipboard.writeText(referralLink).then(() => alert('Ссылка скопирована!'));
+                navigator.clipboard.writeText(referralLink).then(() => {
+                    alert('Ссылка скопирована!');
+                });
             });
 
             updateBalanceUI(userData.balance);
@@ -797,7 +806,8 @@
             document.getElementById('withdrawBtn').addEventListener('click', withdraw);
         }
 
-        // ----- Профиль -----
+        // -------------------------------------------------------------
+        // Профиль
         async function loadProfile() {
             const profile = await apiCall('GET', '/user/profile');
             userData.balance = profile.user.balance;
@@ -818,7 +828,8 @@
             document.getElementById('walletBalance').textContent = formatted;
         }
 
-        // ----- Faucet -----
+        // -------------------------------------------------------------
+        // Кран (faucet)
         let claimTimerInterval = null;
         function startClaimTimer() {
             updateClaimButtonFromServer();
@@ -895,7 +906,8 @@
             nextLine();
         }
 
-        // ----- Daily Streak -----
+        // -------------------------------------------------------------
+        // Ежедневный стрик
         async function loadDailyStreakStatus() {
             const status = await apiCall('GET', '/daily-streak/status');
             renderStreakGrid(status.current_day, status.rewards, status.claimed_today);
@@ -967,7 +979,8 @@
             } catch (e) {}
         };
 
-        // ----- Постоянные задания -----
+        // -------------------------------------------------------------
+        // Задания (постоянные)
         async function loadTasks() {
             const data = await apiCall('GET', '/tasks');
             const container = document.getElementById('tasksList');
@@ -1006,7 +1019,8 @@
             } catch (e) {}
         };
 
-        // ----- Рефералы -----
+        // -------------------------------------------------------------
+        // Рефералы
         async function loadReferralInfo() {
             const stats = await apiCall('GET', '/referral/stats');
             document.getElementById('statRefs').textContent = stats.referral_count;
@@ -1028,7 +1042,8 @@
             } catch (e) {}
         };
 
-        // ----- Активности -----
+        // -------------------------------------------------------------
+        // Активность
         async function loadActivities() {
             const data = await apiCall('GET', '/activities');
             const container = document.getElementById('activityList');
@@ -1045,7 +1060,8 @@
             });
         }
 
-        // ----- Кошелёк и вывод -----
+        // -------------------------------------------------------------
+        // Кошелёк и вывод
         window.showWithdrawForm = function() {
             document.getElementById('withdrawForm').style.display = 'block';
             document.getElementById('historyCard').style.display = 'none';
@@ -1097,14 +1113,17 @@
             } catch (e) {}
         };
 
-        // ----- Навигация -----
+        // -------------------------------------------------------------
+        // Навигация
         function scrollToSection(id) {
             const section = document.getElementById(id);
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => item.addEventListener('click', () => scrollToSection(item.dataset.target)));
+        navItems.forEach(item => item.addEventListener('click', () => {
+            scrollToSection(item.dataset.target);
+        }));
 
         const main = document.querySelector('main');
         main.addEventListener('scroll', () => {
@@ -1114,11 +1133,14 @@
             let current = sections[0];
             for (const id of sections) {
                 const sec = document.getElementById(id);
-                if (sec && sec.offsetTop <= scrollPos) current = id;
+                if (sec && sec.offsetTop <= scrollPos) {
+                    current = id;
+                }
             }
             navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
         }, { passive: true });
 
+        // Запуск
         window.addEventListener('DOMContentLoaded', () => {
             if (window.Telegram?.WebApp) {
                 initApp();
