@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WGramm – Dark Contrast UI</title>
+    
+    <!-- Подключаем Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
     <style>
-        /* все стили без изменений, как в предыдущей версии */
+        /* все стили без изменений */
         :root {
             --bg: #020205;
             --glass: rgba(10,10,14,0.85);
@@ -21,7 +25,7 @@
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
-       
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background: #020205;
@@ -378,6 +382,7 @@
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
+    <!-- Весь HTML интерфейса остаётся без изменений -->
     <header>
         <span>WGramm</span>
         <div class="lang-btns">
@@ -518,7 +523,7 @@
 
 <script>
     (function() {
-        const API_BASE = 'https://wpoint-backend.onrender.com'; // замените на ваш URL
+        const API_BASE = 'https://wpoint-backend.onrender.com';
         let apiToken = null;
         let userData = null;
 
@@ -575,7 +580,7 @@
             document.getElementById('withdrawActionLabel').textContent = t('withdraw');
             document.getElementById('historyActionLabel').textContent = t('history');
             document.getElementById('historyTitle').textContent = t('historyTitle');
-            document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle'); // ✅ перевод
+            document.getElementById('dailyQuestsTitle').textContent = t('dailyQuestsTitle');
             document.getElementById('tasksListTitle').textContent = t('tasksListTitle');
             document.getElementById('activityTitle').textContent = t('activityTitle');
             document.getElementById('referralTitle').textContent = t('referralTitle');
@@ -615,27 +620,39 @@
                 return data;
             } catch (err) {
                 console.error('API call error:', err);
-                alert('Network error: ' + err.message);
                 throw err;
             }
         }
 
+        // 🔥 Исправленная инициализация Mini App
         async function initApp() {
             const tg = window.Telegram?.WebApp;
-            if (!tg || !tg.initData) {
-                alert('Пожалуйста, откройте приложение через Telegram Mini App.');
+
+            if (!tg) {
+                document.body.innerHTML = '<div style="color:white;text-align:center;padding:40px;">Ошибка: Telegram.WebApp не найден. Откройте приложение через кнопку меню бота.</div>';
                 return;
             }
+
+            tg.ready();
+            tg.expand();
+
+            const initData = tg.initData;
+            if (!initData) {
+                document.body.innerHTML = '<div style="color:white;text-align:center;padding:40px;">Не удалось получить initData. Попробуйте перезапустить Mini App.</div>';
+                return;
+            }
+
             try {
                 const authResult = await fetch(API_BASE + '/auth', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ initData: tg.initData })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: initData })
                 }).then(r => r.json());
 
                 if (!authResult.success) {
                     throw new Error(authResult.error || 'Auth failed');
                 }
+
                 apiToken = authResult.token;
                 userData = authResult.user;
 
@@ -662,6 +679,7 @@
             }
         }
 
+        // Остальные функции (loadProfile, loadActivities и т.д.) остаются без изменений
         async function loadProfile() {
             const profile = await apiCall('GET', '/user/profile');
             userData.balance = profile.user.balance;
@@ -932,11 +950,13 @@
             navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
         }, { passive: true });
 
+        // Запуск с правильной проверкой
         window.addEventListener('DOMContentLoaded', () => {
             if (window.Telegram?.WebApp) {
                 initApp();
             } else {
-                alert('Запустите приложение в Telegram Mini App');
+                // Показываем сообщение вместо alert
+                document.body.innerHTML = '<div style="color:white;text-align:center;padding:50px;">Пожалуйста, откройте приложение через Telegram Mini App.<br><small>Нажмите кнопку меню в чате с ботом.</small></div>';
             }
         });
     })();
