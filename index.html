@@ -130,7 +130,6 @@
             text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 500;
         }
 
-        /* Общие стили кнопок */
         button {
             background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.35);
             color: #eee; padding: 14px 24px; border-radius: 18px;
@@ -161,7 +160,6 @@
             border-color: rgba(255,255,255,0.2); color: #777; box-shadow: none;
         }
 
-        /* Мини-кнопки для заданий и рефералов */
         .mini-btn {
             width: auto;
             padding: 8px 16px;
@@ -205,13 +203,50 @@
             box-shadow: inset 0 0 40px rgba(255,255,255,0.03);
         }
         .terminal-line {
-            opacity: 0; animation: terminalFade 0.4s forwards;
-            margin-bottom: 10px; font-size: 14px; letter-spacing: 1px;
+            opacity: 0;
+            animation: terminalFade 0.4s forwards;
+            margin-bottom: 10px;
+            font-size: 14px;
+            letter-spacing: 1px;
         }
         .terminal-success { color: white; font-weight: 700; font-size: 18px; text-align: center; }
+
         @keyframes terminalFade {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ----- Новый консольный экран загрузки ----- */
+        #splash {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #020205;
+            color: #d0d0d0;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+        }
+        #splash .console-line {
+            opacity: 0;
+            animation: terminalFade 0.4s forwards;
+            margin-bottom: 6px;
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: #d0d0d0;
+        }
+        #splash .console-line.success { color: #c0b0ff; font-weight: 600; }
+        #splash .console-line.finish {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-top: 20px;
+            animation: none;
+            opacity: 1;
         }
 
         .streak-grid {
@@ -312,12 +347,14 @@
     </style>
 </head>
 <body>
+
+<!-- ===== НОВЫЙ КОНСОЛЬНЫЙ ЭКРАН ЗАГРУЗКИ ===== -->
 <div id="splash">
-    <div class="logo">💎</div>
-    <div style="color:#aaa; font-size:22px; font-weight:600; letter-spacing:4px; margin-top:20px;">WGramm</div>
+    <div id="splashContent"></div>
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
+    <!-- Header, main, nav – полностью идентичны предыдущей версии -->
     <header>
         <span>WGramm</span>
         <div class="lang-btns">
@@ -578,67 +615,129 @@
             return data;
         }
 
-        // Инициализация
+        // ======= ФУНКЦИЯ ДОБАВЛЕНИЯ СТРОКИ В КОНСОЛЬ =======
+        function addSplashLine(text, cls = '') {
+            const container = document.getElementById('splashContent');
+            if (!container) return;
+            const div = document.createElement('div');
+            div.className = 'console-line ' + cls;
+            div.textContent = text;
+            container.appendChild(div);
+        }
+
+        // ======= НОВАЯ ИНИЦИАЛИЗАЦИЯ С КОНСОЛЬЮ =======
         async function initApp() {
             const tg = window.Telegram?.WebApp;
+
+            // 1. Проверка наличия Telegram WebApp
+            addSplashLine('> Starting WGramm...');
+            await sleep(400);
+
             if (!tg) {
-                document.body.innerHTML = '<div style="color:white;text-align:center;padding:40px;">Ошибка: Telegram.WebApp не найден. Откройте приложение через кнопку меню бота.</div>';
+                addSplashLine('> ERROR: Telegram.WebApp not found', 'error');
+                addSplashLine('> Open via Telegram bot menu', 'error');
                 return;
             }
+            addSplashLine('> Telegram WebApp detected', 'success');
+
+            // 2. Инициализация WebApp
+            addSplashLine('> Initializing WebApp...');
+            await sleep(300);
             tg.ready();
             tg.expand();
+            addSplashLine('> WebApp ready', 'success');
+
+            // 3. Получение initData
+            addSplashLine('> Retrieving initData...');
+            await sleep(200);
             const initData = tg.initData;
             if (!initData) {
-                document.body.innerHTML = '<div style="color:white;text-align:center;padding:40px;">Не удалось получить initData.</div>';
+                addSplashLine('> ERROR: initData empty', 'error');
                 return;
             }
+            addSplashLine('> initData received', 'success');
+
+            // 4. Авторизация
+            addSplashLine('> Authenticating...');
+            await sleep(500);
             try {
                 const authResult = await fetch(API_BASE + '/auth', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ initData: initData })
                 }).then(r => r.json());
+
                 if (!authResult.success) throw new Error(authResult.error || 'Auth failed');
+                addSplashLine('> Authentication successful', 'success');
 
                 apiToken = authResult.token;
                 userData = authResult.user;
-
-                if (userData.language && userData.language !== currentLang) {
-                    currentLang = userData.language;
-                    localStorage.setItem('lang', currentLang);
-                }
-                setLang(currentLang);
-
-                // Генерация реферальной ссылки
-                referralLink = `https://t.me/workers_gram_bot/wwgram?startapp=REF${userData.telegram_id}`;
-                document.getElementById('copyReferralBtn').addEventListener('click', () => {
-                    navigator.clipboard.writeText(referralLink).then(() => {
-                        alert('Ссылка скопирована!');
-                    });
-                });
-
-                await loadProfile();
-                await loadDailyStreakStatus();
-                await loadTasks();
-                await loadActivities();
-                await loadReferralInfo();
-
-                updateBalanceUI(userData.balance);
-                startClaimTimer();
-
-                // Привязываем обработчики
-                document.getElementById('dailyBtn').addEventListener('click', claimDailyStreak);
-                document.getElementById('claimBtn').addEventListener('click', claim);
-                document.getElementById('claimRefRewardBtn').addEventListener('click', claimRefReward);
-                document.getElementById('withdrawBtn').addEventListener('click', withdraw);
-
-                document.getElementById('splash').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'flex';
-            } catch (e) {
-                console.error(e);
-                alert('Ошибка инициализации: ' + e.message);
+            } catch (err) {
+                addSplashLine('> ERROR: ' + err.message, 'error');
+                return;
             }
+
+            // 5. Загрузка данных
+            addSplashLine('> Loading profile...');
+            await sleep(300);
+            await loadProfile();
+            addSplashLine('> Profile loaded', 'success');
+
+            addSplashLine('> Loading daily streak...');
+            await sleep(200);
+            await loadDailyStreakStatus();
+            addSplashLine('> Daily streak ready', 'success');
+
+            addSplashLine('> Loading tasks...');
+            await sleep(200);
+            await loadTasks();
+            addSplashLine('> Tasks loaded', 'success');
+
+            addSplashLine('> Loading activities...');
+            await sleep(200);
+            await loadActivities();
+            addSplashLine('> Activities loaded', 'success');
+
+            addSplashLine('> Loading referrals...');
+            await sleep(200);
+            await loadReferralInfo();
+            addSplashLine('> Referrals ready', 'success');
+
+            // 6. Завершение
+            addSplashLine('> FINISH', 'finish');
+            await sleep(800);
+
+            // Скрываем сплеш, показываем приложение
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+
+            // Дополнительные настройки, которые были в initApp
+            if (userData.language && userData.language !== currentLang) {
+                currentLang = userData.language;
+                localStorage.setItem('lang', currentLang);
+            }
+            setLang(currentLang);
+
+            referralLink = `https://t.me/workers_gram_bot/wwgram?startapp=REF${userData.telegram_id}`;
+            document.getElementById('copyReferralBtn').addEventListener('click', () => {
+                navigator.clipboard.writeText(referralLink).then(() => {
+                    alert('Ссылка скопирована!');
+                });
+            });
+
+            updateBalanceUI(userData.balance);
+            startClaimTimer();
+
+            document.getElementById('dailyBtn').addEventListener('click', claimDailyStreak);
+            document.getElementById('claimBtn').addEventListener('click', claim);
+            document.getElementById('claimRefRewardBtn').addEventListener('click', claimRefReward);
+            document.getElementById('withdrawBtn').addEventListener('click', withdraw);
         }
+
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        // ... остальные функции (loadProfile, loadDailyStreakStatus, и т.д.) без изменений ...
+        // Полностью сохраняем код из предыдущей версии, кроме initApp и splash.
 
         async function loadProfile() {
             const profile = await apiCall('GET', '/user/profile');
@@ -660,7 +759,6 @@
             document.getElementById('walletBalance').textContent = formatted;
         }
 
-        // Faucet claim
         let claimTimerInterval = null;
         function startClaimTimer() {
             updateClaimButtonFromServer();
@@ -737,7 +835,6 @@
             nextLine();
         }
 
-        // Daily Streak (с таймером)
         async function loadDailyStreakStatus() {
             const status = await apiCall('GET', '/daily-streak/status');
             renderStreakGrid(status.current_day, status.rewards, status.claimed_today);
@@ -809,7 +906,6 @@
             } catch (e) {}
         };
 
-        // Tasks
         async function loadTasks() {
             const data = await apiCall('GET', '/tasks');
             const container = document.getElementById('tasksList');
@@ -848,7 +944,6 @@
             } catch (e) {}
         };
 
-        // Referral
         async function loadReferralInfo() {
             const stats = await apiCall('GET', '/referral/stats');
             document.getElementById('statRefs').textContent = stats.referral_count;
@@ -870,7 +965,6 @@
             } catch (e) {}
         };
 
-        // Activities
         async function loadActivities() {
             const data = await apiCall('GET', '/activities');
             const container = document.getElementById('activityList');
@@ -887,7 +981,6 @@
             });
         }
 
-        // Withdraw / History
         window.showWithdrawForm = function() {
             document.getElementById('withdrawForm').style.display = 'block';
             document.getElementById('historyCard').style.display = 'none';
@@ -939,7 +1032,6 @@
             } catch (e) {}
         };
 
-        // Навигация
         function scrollToSection(id) {
             const section = document.getElementById(id);
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -969,7 +1061,9 @@
             if (window.Telegram?.WebApp) {
                 initApp();
             } else {
-                document.body.innerHTML = '<div style="color:white;text-align:center;padding:50px;">Пожалуйста, откройте приложение через Telegram Mini App.<br><small>Нажмите кнопку меню в чате с ботом.</small></div>';
+                // Вне Telegram – показываем сообщение в консоли
+                addSplashLine('> ERROR: Telegram.WebApp not found', 'error');
+                addSplashLine('> Open via Telegram bot menu', 'error');
             }
         });
     })();
