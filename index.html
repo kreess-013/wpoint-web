@@ -49,7 +49,7 @@
             background-blend-mode: normal;
         }
 
-        /* ----- КОНСОЛЬНЫЙ СПЛЭШ ----- */
+        /* Консольный сплэш */
         #splash {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: #020205;
@@ -344,11 +344,25 @@
             font-family: var(--font);
         }
         input::placeholder { color: #666; opacity: 0.8; }
+
+        /* AdsGram Task – внутренняя обёртка, чтобы кнопка не вылезала */
+        #dailyTaskContainer {
+            overflow: hidden; /* на случай, если компонент попытается расшириться */
+            display: block;
+        }
+        adsgram-task {
+            display: block;
+            width: 100%;
+        }
+        /* скрываем сообщение по умолчанию */
+        #dailyTaskDoneMsg {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-<!-- КОНСОЛЬНЫЙ ЭКРАН ЗАГРУЗКИ -->
+<!-- Консольный сплэш -->
 <div id="splash">
     <div id="splashContent"></div>
 </div>
@@ -441,11 +455,11 @@
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
 
-                <!-- AdsGram Daily Task – динамический контейнер -->
+                <!-- AdsGram Daily Task -->
                 <div class="card" id="dailyTaskCard">
                     <div class="label" id="dailyQuestsTitle">Daily Quests</div>
                     <div id="dailyTaskContainer">
-                        <!-- adsgram-task создастся здесь -->
+                        <!-- adsgram-task будет вставлен динамически -->
                     </div>
                     <div id="dailyTaskDoneMsg">
                         Возвращайтесь завтра 👋
@@ -654,14 +668,16 @@
             const container = document.getElementById('dailyTaskContainer');
             if (!container) return;
 
+            // Очищаем контейнер перед созданием нового компонента
             container.innerHTML = '';
 
             const taskEl = document.createElement('adsgram-task');
-            taskEl.setAttribute('data-block-id', 'task-41724');
+            taskEl.setAttribute('data-block-id', 'task-41719');
             taskEl.setAttribute('data-user-id', userData.telegram_id);
             taskEl.setAttribute('id', 'dailyTask');
             taskEl.classList.add('task');
 
+            // Слоты (как в документации AdsGram)
             taskEl.innerHTML = `
                 <span slot="reward" class="badge">+0.01</span>
                 <button slot="button" class="mini-btn">Claim</button>
@@ -671,6 +687,7 @@
 
             container.appendChild(taskEl);
 
+            // Обработчики событий
             taskEl.addEventListener('reward', () => {
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
@@ -678,6 +695,7 @@
 
             taskEl.addEventListener('onError', (e) => {
                 console.error('AdsGram task error', e.detail);
+                // При ошибке тоже скрываем задание и показываем сообщение
                 document.getElementById('dailyTaskContainer').style.display = 'none';
                 document.getElementById('dailyTaskDoneMsg').style.display = 'block';
             });
@@ -692,7 +710,6 @@
         async function initApp() {
             const tg = window.Telegram?.WebApp;
 
-            // Шаг 1
             addSplashLine('> Starting WGramm...');
             await sleep(400);
 
@@ -703,14 +720,12 @@
             }
             addSplashLine('> Telegram WebApp detected', 'success');
 
-            // Шаг 2
             addSplashLine('> Initializing WebApp...');
             await sleep(300);
             tg.ready();
             tg.expand();
             addSplashLine('> WebApp ready', 'success');
 
-            // Шаг 3
             addSplashLine('> Retrieving initData...');
             await sleep(200);
             const initData = tg.initData;
@@ -720,7 +735,6 @@
             }
             addSplashLine('> initData received', 'success');
 
-            // Шаг 4
             addSplashLine('> Authenticating...');
             await sleep(500);
             try {
@@ -740,7 +754,6 @@
                 return;
             }
 
-            // Шаг 5 – загрузка данных
             addSplashLine('> Loading profile...');
             await sleep(300);
             await loadProfile();
@@ -779,7 +792,6 @@
             document.getElementById('splash').style.display = 'none';
             document.getElementById('mainApp').style.display = 'flex';
 
-            // Дополнительные настройки
             if (userData.language && userData.language !== currentLang) {
                 currentLang = userData.language;
                 localStorage.setItem('lang', currentLang);
@@ -1122,7 +1134,6 @@
             navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
         }, { passive: true });
 
-        // Запуск
         window.addEventListener('DOMContentLoaded', () => {
             if (window.Telegram?.WebApp) {
                 initApp();
