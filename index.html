@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WGramm – Dark Contrast UI</title>
     
-    <!-- Подключаем Telegram WebApp SDK -->
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <style>
-        /* все стили без изменений */
         :root {
             --bg: #020205;
             --glass: rgba(10,10,14,0.85);
@@ -138,10 +137,7 @@
         }
         main::-webkit-scrollbar { display: none; }
         section { padding-top:6px; padding-bottom:6px; }
-
-        section {
-            scroll-margin-top: 100px;
-        }
+        section { scroll-margin-top: 100px; }
 
         .section-wrapper {
             border: 1px solid var(--glass-border);
@@ -181,21 +177,69 @@
             text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
             font-weight: 500;
         }
+
+        /* === КНОПКИ (новый UX) === */
         button {
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.35);
-            color: #eee; padding: 14px 24px; border-radius: 18px;
-            font-size: 0.95rem; font-weight: 600; cursor: pointer;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            transition: all 0.2s; width: 100%; margin-top: 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: #eee;
+            padding: 14px 24px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.15s ease;
+            width: 100%;
+            margin-top: 12px;
             letter-spacing: 0.5px;
+            position: relative;
+            outline: none;
         }
-        button:active { background: rgba(255,255,255,0.2); transform: scale(0.97); }
+
+        /* Нажатие */
+        button:active:not(:disabled) {
+            transform: scale(0.96);
+            background: rgba(255,255,255,0.2);
+            border-color: #fff;
+            transition: transform 0.05s, background 0.05s;
+        }
+
         button.primary {
-            background: #c0c0c0; border-color: #ffffff;
-            color: #0a0a0a; box-shadow: 0 4px 20px rgba(180,180,180,0.4);
+            background: #c0c0c0;
+            border-color: #ffffff;
+            color: #0a0a0a;
+            box-shadow: 0 4px 20px rgba(180,180,180,0.4);
             font-weight: 700;
         }
-        button:disabled { opacity:0.4; background: rgba(30,30,30,0.8); color:#666; border-color: rgba(255,255,255,0.1); }
+
+        button.primary:active:not(:disabled) {
+            transform: scale(0.96);
+            background: #d4d4d4;
+            box-shadow: 0 2px 12px rgba(180,180,180,0.5);
+            transition: transform 0.05s, background 0.05s;
+        }
+
+        /* Неактивная кнопка – убрали тени, белая рамка, тусклый текст */
+        button:disabled {
+            opacity: 0.6;
+            background: rgba(20,20,20,0.7);
+            color: #555;
+            border-color: rgba(255,255,255,0.25);
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        /* Состояние загрузки (будем добавлять класс .btn-loading) */
+        button.btn-loading {
+            pointer-events: none;
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.2);
+            color: #777;
+            box-shadow: none;
+        }
 
         .task-item {
             display: flex; justify-content: space-between; align-items: center;
@@ -237,7 +281,6 @@
             font-size: 14px;
             letter-spacing: 1px;
         }
-
         .terminal-success {
             color: white;
             font-weight: 700;
@@ -258,7 +301,6 @@
             margin-top: 12px;
             width: 100%;
         }
-
         .streak-day {
             min-width: 0;
             overflow: hidden;
@@ -271,7 +313,6 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-
         .streak-num { font-size: 12px; opacity: 0.6; }
         .streak-reward {
             margin-top: 4px;
@@ -279,7 +320,6 @@
             font-weight: 700;
             white-space: nowrap;
         }
-
         .streak-day.active {
             background: #d0d0d0; border-color:#fff; color:#0a0a0a;
             transform: scale(1.06); box-shadow: 0 4px 20px rgba(200,200,200,0.5);
@@ -309,7 +349,6 @@
             pointer-events: none;
         }
         .wallet-balance { font-size:38px; font-weight:900; color:#fff; }
-
         .wallet-actions { display: flex; justify-content: space-around; margin: 20px 0; }
         .wallet-action-btn {
             display: flex; flex-direction: column; align-items: center;
@@ -382,7 +421,6 @@
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
-    <!-- Весь HTML интерфейса остаётся без изменений -->
     <header>
         <span>WGramm</span>
         <div class="lang-btns">
@@ -391,7 +429,7 @@
         </div>
     </header>
     <main>
-        <!-- WGramm (Profile) -->
+        <!-- Profile -->
         <section id="profile">
             <div class="section-wrapper">
                 <div class="card" style="text-align:center;">
@@ -399,7 +437,6 @@
                     <div style="font-weight:700; font-size:1.2rem; color:#fff;" id="profileName">User</div>
                     <div style="color:var(--text-secondary); margin:4px 0;">ID: <span id="profileId">—</span></div>
                 </div>
-
                 <div class="card">
                     <div class="stats-grid">
                         <div class="stat-item"><div class="stat-label" id="statEarnedLabel">Earned</div><div class="stat-value" id="statEarned">0</div></div>
@@ -408,12 +445,11 @@
                         <div class="stat-item"><div class="stat-label" id="statRefsLabel">Refs</div><div class="stat-value" id="statRefs">0</div></div>
                     </div>
                 </div>
-
                 <div class="card">
                     <div style="font-size:20px; font-weight:700; color:#fff;" id="dailyStreakTitle">🔥 Daily Streak</div>
                     <div style="opacity:0.5; margin-top:6px; font-size:14px; color:var(--text-secondary);" id="dailyStreakDesc">Login every day and get rewards</div>
                     <div class="streak-grid" id="streakGrid"></div>
-                    <button id="dailyBtn" class="primary" onclick="claimDailyStreak()">CLAIM REWARD</button>
+                    <button id="dailyBtn" class="primary">CLAIM REWARD</button>
                 </div>
             </div>
         </section>
@@ -458,7 +494,7 @@
                     <input id="walletAddressInput" placeholder="TON wallet">
                     <input id="amountInput" type="number" placeholder="Amount">
                     <div style="margin:10px 0; font-size:14px; color:var(--text-secondary);">Fee: 0.01 USDT</div>
-                    <button onclick="withdraw()">WITHDRAW</button>
+                    <button id="withdrawBtn">WITHDRAW</button>
                     <button onclick="hideWithdrawForm()" style="background:rgba(255,255,255,0.03);">Back</button>
                 </div>
                 <div class="card" id="historyCard" style="display:none;">
@@ -473,7 +509,6 @@
         <section id="tasks">
             <div class="section-wrapper">
                 <div class="section-title" id="tasksTitle">Tasks</div>
-                <!-- ВОЗВРАЩЁННЫЙ БЛОК Daily Quests -->
                 <div class="card">
                     <div class="label" id="dailyQuestsTitle">Daily Quests</div>
                     <div id="dailyQuests">
@@ -495,7 +530,7 @@
                         <span style="color:var(--text-secondary);" id="referralEarnedLabel">Earned from referrals</span>
                         <span style="font-weight:700;" id="referralEarnedValue">0.00 USDT</span>
                     </div>
-                    <button onclick="claimRefReward()" id="claimRefRewardBtn">Claim Reward</button>
+                    <button id="claimRefRewardBtn">Claim Reward</button>
                 </div>
             </div>
         </section>
@@ -573,9 +608,7 @@
             document.getElementById('statRefsLabel').textContent = t('statRefs');
             document.getElementById('dailyStreakTitle').textContent = t('dailyStreak');
             document.getElementById('dailyStreakDesc').textContent = t('dailyStreakDesc');
-            document.getElementById('dailyBtn').textContent = t('claimStreak');
             document.getElementById('faucetBalanceLabel').textContent = t('faucetBalance');
-            document.getElementById('claimBtn').textContent = t('claim');
             document.getElementById('supportText').textContent = t('support');
             document.getElementById('withdrawActionLabel').textContent = t('withdraw');
             document.getElementById('historyActionLabel').textContent = t('history');
@@ -586,9 +619,24 @@
             document.getElementById('referralTitle').textContent = t('referralTitle');
             document.getElementById('referralLinkLabel').textContent = t('referralLinkLabel');
             document.getElementById('referralEarnedLabel').textContent = t('referralEarnedLabel');
-            document.getElementById('claimRefRewardBtn').textContent = t('claimRefRewardBtn');
+
+            // Устанавливаем тексты кнопок и сохраняем исходные значения для возврата после загрузки
+            setButtonText('claimBtn', t('claim'));
+            setButtonText('dailyBtn', t('claimStreak'));
+            setButtonText('withdrawBtn', 'WITHDRAW'); // не переводим или можно добавить перевод
+            setButtonText('claimRefRewardBtn', t('claimRefRewardBtn'));
         }
 
+        // Функция сохранения оригинального текста кнопки
+        function setButtonText(id, text) {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.textContent = text;
+                btn.setAttribute('data-original-text', text);
+            }
+        }
+
+        // Переключение языка
         window.setLang = function(lang) {
             currentLang = lang;
             localStorage.setItem('lang', lang);
@@ -600,6 +648,32 @@
             }
         };
 
+        // Управление состоянием загрузки кнопки
+        function setButtonLoading(btn, isLoading) {
+            if (!btn) return;
+            if (isLoading) {
+                btn.disabled = true;
+                btn.classList.add('btn-loading');
+                btn.textContent = 'Loading...';
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('btn-loading');
+                const original = btn.getAttribute('data-original-text');
+                if (original) btn.textContent = original;
+            }
+        }
+
+        // Обёртка для API с автоматической загрузкой на кнопке
+        async function apiCallWithLoading(btn, method, path, body) {
+            setButtonLoading(btn, true);
+            try {
+                const res = await apiCall(method, path, body);
+                return res;
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
         async function apiCall(method, path, body) {
             const headers = {
                 'Content-Type': 'application/json'
@@ -607,27 +681,21 @@
             if (apiToken) {
                 headers['Authorization'] = `Bearer ${apiToken}`;
             }
-            try {
-                const res = await fetch(API_BASE + path, {
-                    method,
-                    headers,
-                    body: body ? JSON.stringify(body) : undefined
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.detail || 'API error');
-                }
-                return data;
-            } catch (err) {
-                console.error('API call error:', err);
-                throw err;
+            const res = await fetch(API_BASE + path, {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : undefined
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || 'API error');
             }
+            return data;
         }
 
-        // 🔥 Исправленная инициализация Mini App
+        // Инициализация Mini App
         async function initApp() {
             const tg = window.Telegram?.WebApp;
-
             if (!tg) {
                 document.body.innerHTML = '<div style="color:white;text-align:center;padding:40px;">Ошибка: Telegram.WebApp не найден. Откройте приложение через кнопку меню бота.</div>';
                 return;
@@ -649,9 +717,7 @@
                     body: JSON.stringify({ initData: initData })
                 }).then(r => r.json());
 
-                if (!authResult.success) {
-                    throw new Error(authResult.error || 'Auth failed');
-                }
+                if (!authResult.success) throw new Error(authResult.error || 'Auth failed');
 
                 apiToken = authResult.token;
                 userData = authResult.user;
@@ -660,7 +726,7 @@
                     currentLang = userData.language;
                     localStorage.setItem('lang', currentLang);
                 }
-                setLang(currentLang);
+                setLang(currentLang); // установит тексты кнопок с data-original-text
 
                 await loadProfile();
                 await loadDailyStreakStatus();
@@ -679,7 +745,6 @@
             }
         }
 
-        // Остальные функции (loadProfile, loadActivities и т.д.) остаются без изменений
         async function loadProfile() {
             const profile = await apiCall('GET', '/user/profile');
             userData.balance = profile.user.balance;
@@ -701,6 +766,7 @@
             document.getElementById('walletBalance').textContent = formatted;
         }
 
+        // Faucet claim
         let claimTimerInterval = null;
         function startClaimTimer() {
             updateClaimButtonFromServer();
@@ -710,11 +776,15 @@
         async function updateClaimButtonFromServer() {
             try {
                 const res = await apiCall('GET', '/faucet/status');
+                const btn = document.getElementById('claimBtn');
                 if (res.can_claim) {
-                    document.getElementById('claimBtn').disabled = false;
+                    btn.disabled = false;
+                    btn.classList.remove('btn-loading');
+                    btn.textContent = t('claim');
                     document.getElementById('timerMsg').textContent = 'Ready to claim!';
                 } else {
-                    document.getElementById('claimBtn').disabled = true;
+                    btn.disabled = true;
+                    btn.textContent = t('claim');
                     document.getElementById('timerMsg').textContent = `Next claim in ${formatTime(res.remaining)}`;
                 }
             } catch (e) {
@@ -730,8 +800,9 @@
 
         async function claim() {
             runClaimAnimation(0.01);
+            const btn = document.getElementById('claimBtn');
             try {
-                const res = await apiCall('POST', '/faucet/claim');
+                const res = await apiCallWithLoading(btn, 'POST', '/faucet/claim');
                 if (res.success) {
                     userData.balance = res.new_balance;
                     updateBalanceUI(userData.balance);
@@ -740,7 +811,9 @@
                 } else if (res.error === 'cooldown') {
                     alert('Cooldown active');
                 }
-            } catch (e) {}
+            } catch (e) {
+                // обработка ошибок выше
+            }
         }
 
         function runClaimAnimation(amount) {
@@ -776,12 +849,18 @@
 
         document.getElementById('claimBtn').addEventListener('click', claim);
 
+        // Daily Streak
         async function loadDailyStreakStatus() {
             const status = await apiCall('GET', '/daily-streak/status');
             renderStreakGrid(status.current_day, status.rewards);
             const btn = document.getElementById('dailyBtn');
-            btn.disabled = status.claimed_today;
-            btn.textContent = status.claimed_today ? 'Already claimed today' : t('claimStreak');
+            if (status.claimed_today) {
+                btn.disabled = true;
+                btn.textContent = 'Already claimed today';
+            } else {
+                btn.disabled = false;
+                btn.textContent = btn.getAttribute('data-original-text') || t('claimStreak');
+            }
         }
 
         function renderStreakGrid(currentDay, rewards) {
@@ -798,17 +877,21 @@
         }
 
         window.claimDailyStreak = async function() {
-            const res = await apiCall('POST', '/daily-streak/claim');
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
-                loadDailyStreakStatus();
-                loadActivities();
-            } else {
-                alert(res.error);
-            }
+            const btn = document.getElementById('dailyBtn');
+            try {
+                const res = await apiCallWithLoading(btn, 'POST', '/daily-streak/claim');
+                if (res.success) {
+                    userData.balance = res.new_balance;
+                    updateBalanceUI(userData.balance);
+                    loadDailyStreakStatus();
+                    loadActivities();
+                } else {
+                    alert(res.error);
+                }
+            } catch (e) {}
         };
 
+        // Tasks
         async function loadTasks() {
             const data = await apiCall('GET', '/tasks');
             const container = document.getElementById('tasksList');
@@ -823,26 +906,30 @@
                 } else {
                     const btn = document.createElement('button');
                     btn.textContent = 'Claim';
-                    btn.onclick = () => completeTask(task.id);
+                    btn.setAttribute('data-original-text', 'Claim');
+                    btn.onclick = () => completeTask(task.id, btn);
                     div.appendChild(btn);
                 }
                 container.appendChild(div);
             });
         }
 
-        window.completeTask = async function(taskId) {
-            const res = await apiCall('POST', `/tasks/${taskId}/complete`);
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
-                loadTasks();
-                loadActivities();
-                alert(`${t('taskDone')}${res.reward} USDT`);
-            } else {
-                alert(res.error);
-            }
+        window.completeTask = async function(taskId, btn) {
+            try {
+                const res = await apiCallWithLoading(btn, 'POST', `/tasks/${taskId}/complete`);
+                if (res.success) {
+                    userData.balance = res.new_balance;
+                    updateBalanceUI(userData.balance);
+                    loadTasks();
+                    loadActivities();
+                    alert(`${t('taskDone')}${res.reward} USDT`);
+                } else {
+                    alert(res.error);
+                }
+            } catch (e) {}
         };
 
+        // Referral
         async function loadReferralInfo() {
             const stats = await apiCall('GET', '/referral/stats');
             document.getElementById('statRefs').textContent = stats.referral_count;
@@ -850,17 +937,22 @@
         }
 
         window.claimRefReward = async function() {
-            const res = await apiCall('POST', '/referral/claim');
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
-                document.getElementById('referralEarnedValue').textContent = '0.00 USDT';
-                loadActivities();
-            } else {
-                alert(res.error);
-            }
+            const btn = document.getElementById('claimRefRewardBtn');
+            try {
+                const res = await apiCallWithLoading(btn, 'POST', '/referral/claim');
+                if (res.success) {
+                    userData.balance = res.new_balance;
+                    updateBalanceUI(userData.balance);
+                    document.getElementById('referralEarnedValue').textContent = '0.00 USDT';
+                    loadActivities();
+                } else {
+                    alert(res.error);
+                }
+            } catch (e) {}
         };
+        document.getElementById('claimRefRewardBtn').addEventListener('click', claimRefReward);
 
+        // Activities
         async function loadActivities() {
             const data = await apiCall('GET', '/activities');
             const container = document.getElementById('activityList');
@@ -877,6 +969,7 @@
             });
         }
 
+        // Withdraw / History
         window.showWithdrawForm = function() {
             document.getElementById('withdrawForm').style.display = 'block';
             document.getElementById('historyCard').style.display = 'none';
@@ -912,19 +1005,24 @@
                 alert(t('invalidAmount'));
                 return;
             }
-            const res = await apiCall('POST', '/withdraw', { wallet_address: wallet, amount });
-            if (res.success) {
-                userData.balance = res.new_balance;
-                updateBalanceUI(userData.balance);
-                document.getElementById('withdrawForm').style.display = 'none';
-                document.getElementById('amountInput').value = '';
-                alert(t('withdrawSuccess'));
-                loadActivities();
-            } else {
-                alert(res.error);
-            }
+            const btn = document.getElementById('withdrawBtn');
+            try {
+                const res = await apiCallWithLoading(btn, 'POST', '/withdraw', { wallet_address: wallet, amount });
+                if (res.success) {
+                    userData.balance = res.new_balance;
+                    updateBalanceUI(userData.balance);
+                    document.getElementById('withdrawForm').style.display = 'none';
+                    document.getElementById('amountInput').value = '';
+                    alert(t('withdrawSuccess'));
+                    loadActivities();
+                } else {
+                    alert(res.error);
+                }
+            } catch (e) {}
         };
+        document.getElementById('withdrawBtn').addEventListener('click', withdraw);
 
+        // Навигация
         function scrollToSection(id) {
             const section = document.getElementById(id);
             if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -950,12 +1048,10 @@
             navItems.forEach(item => item.classList.toggle('active', item.dataset.target === current));
         }, { passive: true });
 
-        // Запуск с правильной проверкой
         window.addEventListener('DOMContentLoaded', () => {
             if (window.Telegram?.WebApp) {
                 initApp();
             } else {
-                // Показываем сообщение вместо alert
                 document.body.innerHTML = '<div style="color:white;text-align:center;padding:50px;">Пожалуйста, откройте приложение через Telegram Mini App.<br><small>Нажмите кнопку меню в чате с ботом.</small></div>';
             }
         });
